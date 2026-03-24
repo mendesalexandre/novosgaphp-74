@@ -213,6 +213,56 @@ p.links a {
     margin: 0 5px;
 }
 
+/* cronometro */
+
+#cronometro-container {
+    position: fixed;
+    top: 55px;
+    right: 20px;
+    z-index: 1000;
+}
+
+#cronometro {
+    background: #333;
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+#cronometro .cronometro-icone {
+    font-size: 16px;
+}
+
+#cronometro #cronometro-label {
+    font-size: 12px;
+    color: #aaa;
+}
+
+#cronometro #cronometro-tempo {
+    font-size: 22px;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+}
+
+#cronometro.cronometro-espera {
+    background: #d9534f;
+}
+
+#cronometro.cronometro-atendimento {
+    background: #5cb85c;
+}
+
+#cronometro.cronometro-encerramento {
+    background: #f0ad4e;
+    color: #333;
+}
+
 #dialog-busca .modal-dialog {
     width: 90%;
 }

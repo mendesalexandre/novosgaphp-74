@@ -16,7 +16,54 @@ SGA.Atendimento = {
     tiposAtendimento: {},
     permitirChamarDireta: false,
     exigirCodificacao: true,
-    
+
+    // Cronômetro
+    cronometro: {
+        interval: null,
+        inicioTimestamp: null,
+
+        iniciar: function(dataInicio, tipo) {
+            SGA.Atendimento.cronometro.parar();
+            SGA.Atendimento.cronometro.inicioTimestamp = dataInicio ? new Date(dataInicio.replace(' ', 'T')).getTime() : Date.now();
+
+            var el = $('#cronometro');
+            el.removeClass('cronometro-espera cronometro-atendimento cronometro-encerramento');
+            if (tipo === 'espera') {
+                el.addClass('cronometro-espera');
+                $('#cronometro-label').text('Espera');
+            } else if (tipo === 'atendimento') {
+                el.addClass('cronometro-atendimento');
+                $('#cronometro-label').text('Atendimento');
+            } else if (tipo === 'encerramento') {
+                el.addClass('cronometro-encerramento');
+                $('#cronometro-label').text('Codificação');
+            }
+
+            $('#cronometro-container').show();
+            SGA.Atendimento.cronometro.atualizar();
+            SGA.Atendimento.cronometro.interval = setInterval(SGA.Atendimento.cronometro.atualizar, 1000);
+        },
+
+        atualizar: function() {
+            if (!SGA.Atendimento.cronometro.inicioTimestamp) return;
+            var segundos = Math.floor((Date.now() - SGA.Atendimento.cronometro.inicioTimestamp) / 1000);
+            var h = Math.floor(segundos / 3600);
+            var m = Math.floor((segundos % 3600) / 60);
+            var s = segundos % 60;
+            var texto = ('0' + h).slice(-2) + ':' + ('0' + m).slice(-2) + ':' + ('0' + s).slice(-2);
+            $('#cronometro-tempo').text(texto);
+        },
+
+        parar: function() {
+            if (SGA.Atendimento.cronometro.interval) {
+                clearInterval(SGA.Atendimento.cronometro.interval);
+                SGA.Atendimento.cronometro.interval = null;
+            }
+            SGA.Atendimento.cronometro.inicioTimestamp = null;
+            $('#cronometro-container').hide();
+        }
+    },
+
     init: function(status) {
         SGA.Atendimento.ajaxUpdate();
         SGA.Atendimento.updateControls(status);
@@ -102,6 +149,7 @@ SGA.Atendimento = {
                 $('#chamar').show();
                 $('#redirecionar_servico').val(0);
                 $('#encerrar-redirecionar').prop('checked', false);
+                SGA.Atendimento.cronometro.parar();
                 break;
             case 2: // senha chamada
                 if (atendimento) {
@@ -114,6 +162,7 @@ SGA.Atendimento = {
                     info.find('.nome-prioridade .atend-value').text(atendimento.nomePrioridade);
                     info.find('.servico .atend-value').text(atendimento.servico);
                     info.find('.nome .atend-value').text(atendimento.cliente.nome || '-');
+                    SGA.Atendimento.cronometro.iniciar(atendimento.chegada, 'espera');
                 }
                 $('#iniciar').show();
                 break;
@@ -125,11 +174,17 @@ SGA.Atendimento = {
                 setTimeout(function() {
                     btnEncerrar.prop('disabled', false);
                 }, 3000);
+                if (atendimento && atendimento.inicio) {
+                    SGA.Atendimento.cronometro.iniciar(atendimento.inicio, 'atendimento');
+                }
                 break;
             case 4: // atendimento encerrado (faltando codificar)
                 $("#codificar").show();
                 $("#macro-servicos li").show();
                 $("#servicos-realizados").html('');
+                if (atendimento && atendimento.inicio) {
+                    SGA.Atendimento.cronometro.iniciar(atendimento.inicio, 'encerramento');
+                }
                 break;
         }
     },
