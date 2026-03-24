@@ -70,7 +70,7 @@
 }
 
 .cartorio .bloco-senha span {
-    font-size: 7vw;
+    font-size: 9vw;
     font-weight: bold;
     color: #fff;
     white-space: nowrap;
@@ -86,9 +86,9 @@
 }
 
 .cartorio .bloco-guiche span {
-    font-size: 6vw;
+    font-size: 8vw;
     font-weight: bold;
-    color: rgba(255,255,255,0.85);
+    color: #fff;
 }
 
 /* Serviço — vermelho */
