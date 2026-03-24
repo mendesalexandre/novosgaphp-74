@@ -45,13 +45,14 @@
     width: 34%;
     display: flex;
     flex-direction: column;
-    background: #4a90c4;
+    background: #b0b0b0;
+    gap: 2px;
     flex-shrink: 0;
 }
 
 /* Labels (Senha, Guichê) */
 .cartorio .bloco-label {
-    background: rgba(0,0,0,0.15);
+    background: #3d7fb0;
     text-align: center;
     padding: 6px 0;
     font-size: 1.4vw;
@@ -65,6 +66,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    background: #4a90c4;
 }
 
 .cartorio .bloco-senha span {
@@ -80,6 +82,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    background: #4a90c4;
 }
 
 .cartorio .bloco-guiche span {
@@ -107,9 +110,9 @@
     background: rgba(0,0,0,0.15);
 }
 
-/* Relógio — mesmo azul da coluna, fundo levemente mais claro */
+/* Relógio */
 .cartorio .bloco-relogio {
-    background: rgba(255,255,255,0.1);
+    background: #4a90c4;
     text-align: center;
     padding: 15px 10px 12px;
     flex-shrink: 0;
