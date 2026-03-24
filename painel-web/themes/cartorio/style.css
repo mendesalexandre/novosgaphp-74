@@ -1,5 +1,5 @@
 /**
- * Tema Cartório — Baseado no painel ARPEN Registro Civil
+ * Tema Cartório — Painel ARPEN Registro Civil
  */
 
 #layout, #layout * { line-height: 1; margin: 0; padding: 0; box-sizing: border-box; }
@@ -15,33 +15,21 @@
     overflow: hidden;
 }
 
-/* ===== Barra topo ===== */
+/* ===== Topo ===== */
 .cartorio .barra-topo {
-    height: 50px;
+    height: 48px;
     background: #3a3a3a;
     display: flex;
     align-items: center;
-    justify-content: space-between;
     padding: 0 20px;
     flex-shrink: 0;
 }
 
-.cartorio .barra-topo .nome-empresa {
-    font-size: 1.6em;
+.cartorio .nome-empresa {
+    font-size: 1.5em;
     font-weight: bold;
     color: #4a9e6e;
     font-style: italic;
-}
-
-.cartorio .topo-relogio {
-    font-size: 1.3em;
-    font-weight: bold;
-    color: #aaa;
-    font-family: 'Courier New', monospace;
-}
-
-.cartorio .topo-relogio .sep {
-    color: #aaa;
 }
 
 /* ===== Corpo ===== */
@@ -56,11 +44,11 @@
     width: 34%;
     display: flex;
     flex-direction: column;
+    background: #6ab0e0;
     flex-shrink: 0;
 }
 
-/* Bloco Senha (azul claro) */
-.cartorio .bloco-senha-header {
+.cartorio .bloco-label {
     background: #5a9ecf;
     text-align: center;
     padding: 8px 0;
@@ -69,49 +57,37 @@
     color: #fff;
 }
 
-.cartorio .bloco-senha-corpo {
-    background: #6ab0e0;
-    text-align: center;
+.cartorio .bloco-senha {
     flex: 2;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: #6ab0e0;
 }
 
-.cartorio .bloco-senha-corpo span {
+.cartorio .bloco-senha span {
     font-size: 10vw;
     font-weight: bold;
     color: #fff;
 }
 
-/* Bloco Guichê (azul) */
-.cartorio .bloco-guiche-header {
-    background: #5a9ecf;
-    text-align: center;
-    padding: 6px 0;
-    font-size: 1.3vw;
-    font-weight: bold;
-    color: #fff;
-}
-
-.cartorio .bloco-guiche-corpo {
-    background: #6ab0e0;
-    text-align: center;
+.cartorio .bloco-guiche {
     flex: 1.5;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: #6ab0e0;
 }
 
-.cartorio .bloco-guiche-corpo span {
+.cartorio .bloco-guiche span {
     font-size: 8vw;
     font-weight: bold;
     color: #fff;
 }
 
-/* Bloco Serviço (vermelho) */
+/* Serviço — normal */
 .cartorio .bloco-servico {
-    background: #d32f2f;
+    background: #5a9ecf;
     text-align: center;
     padding: 10px 8px;
     flex-shrink: 0;
@@ -123,23 +99,28 @@
     color: #fff;
 }
 
-/* Bloco Relógio (azul escuro) */
+/* Serviço — prioridade (vermelho) */
+.cartorio .bloco-servico.prioridade {
+    background: #d32f2f;
+}
+
+/* Relógio */
 .cartorio .bloco-relogio {
     background: #5a9ecf;
     text-align: center;
-    padding: 12px 10px;
+    padding: 15px 10px 12px;
     flex-shrink: 0;
 }
 
 .cartorio .bloco-relogio .hora span {
-    font-size: 3vw;
+    font-size: 3.5vw;
     font-weight: bold;
     color: #fff;
 }
 
 .cartorio .bloco-relogio .hora .sep {
     animation: cart-blink 1s infinite;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.4);
 }
 
 @keyframes cart-blink {
@@ -148,9 +129,10 @@
 }
 
 .cartorio .bloco-relogio .data {
-    font-size: 0.9vw;
-    color: rgba(255,255,255,0.8);
-    margin-top: 4px;
+    font-size: 1vw;
+    color: rgba(255,255,255,0.85);
+    margin-top: 6px;
+    text-transform: capitalize;
 }
 
 /* ===== Coluna direita ===== */
@@ -177,28 +159,76 @@
 .cartorio #media video,
 .cartorio #media img { width: 100%; height: 100%; object-fit: contain; vertical-align: middle; }
 
-/* Bloco Cliente (amarelo) */
-.cartorio .bloco-cliente {
-    background: #f0a500;
-    padding: 12px 25px;
+/* Bloco inferior: cliente OU histórico */
+.cartorio .bloco-inferior {
     flex-shrink: 0;
 }
 
-.cartorio .bloco-cliente .label-cliente {
+/* Cliente (amarelo) */
+.cartorio .bloco-cliente {
+    background: #f0a500;
+    padding: 12px 25px;
+}
+
+.cartorio .label-cliente {
     font-size: 0.9vw;
     color: rgba(0,0,0,0.5);
     display: block;
     margin-bottom: 2px;
 }
 
-.cartorio .bloco-cliente .nome-cliente {
+.cartorio .nome-cliente {
     font-size: 2.8vw;
     font-weight: bold;
     color: #333;
     display: block;
 }
 
-/* ===== Rodapé notícias ===== */
+/* Histórico */
+.cartorio .bloco-historico {
+    background: #2a2a2a;
+    padding: 10px 20px;
+}
+
+.cartorio .hist-titulo {
+    font-size: 0.8vw;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.cartorio .hist-lista {
+    display: flex;
+    gap: 10px;
+    overflow: hidden;
+}
+
+.cartorio .hist-item {
+    background: #3a3a3a;
+    border-radius: 4px;
+    padding: 8px 14px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.cartorio .hist-senha {
+    font-size: 1.3vw;
+    font-weight: bold;
+    color: #ddd;
+}
+
+.cartorio .hist-local {
+    font-size: 0.85vw;
+    color: #888;
+}
+
+.cartorio .hist-item.prioridade .hist-senha {
+    color: #e74c3c;
+}
+
+/* Notícias rodapé (oculto por padrão) */
 .cartorio .rodape-news {
     height: 0;
     overflow: hidden;
@@ -206,9 +236,9 @@
 
 .cartorio .rodape-news .panel-heading { display: none; }
 
-/* ===== Cores por tipo ===== */
-#layout.prioridade .cartorio .bloco-senha-corpo { background: #e74c3c; }
-#layout.prioridade .cartorio .bloco-senha-header { background: #c0392b; }
-#layout.prioridade .cartorio .bloco-guiche-corpo { background: #e74c3c; }
-#layout.prioridade .cartorio .bloco-guiche-header { background: #c0392b; }
+/* ===== Cores prioridade ===== */
+#layout.prioridade .cartorio .bloco-senha { background: #e74c3c; }
+#layout.prioridade .cartorio .bloco-guiche { background: #e74c3c; }
+#layout.prioridade .cartorio .col-esquerda { background: #e74c3c; }
+#layout.prioridade .cartorio .bloco-label { background: #c0392b; }
 #layout.prioridade .cartorio .bloco-relogio { background: #c0392b; }

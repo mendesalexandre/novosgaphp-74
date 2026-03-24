@@ -612,7 +612,7 @@
         });
 
         // Relógio do cartório
-        var diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+        var diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
         var meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
         setInterval(function() {
@@ -620,11 +620,40 @@
             var h = ('0' + now.getHours()).slice(-2);
             var m = ('0' + now.getMinutes()).slice(-2);
             var s = ('0' + now.getSeconds()).slice(-2);
-            $('#cart-hours, #cart-hours2').text(h);
-            $('#cart-min, #cart-min2').text(m);
-            $('#cart-sec, #cart-sec2').text(s);
-            $('#cart-data').text(diasSemana[now.getDay()] + ', ' + now.getDate() + ' de ' + meses[now.getMonth()] + ' de ' + now.getFullYear());
+            $('#cart-h').text(h);
+            $('#cart-m').text(m);
+            $('#cart-s').text(s);
+            $('#cart-data-ext').text(diasSemana[now.getDay()] + ', ' + now.getDate() + ' de ' + meses[now.getMonth()] + ' de ' + now.getFullYear());
         }, 1000);
+
+        // Mostrar cliente ou histórico conforme a senha atual
+        PainelWeb.on('callend', function() {
+            var scope = angular.element(document.getElementById('layout')).scope();
+            if (scope && scope.ultima && scope.ultima.nomeCliente && scope.ultima.nomeCliente.trim() !== '') {
+                $('#nome-cliente-valor').text(scope.ultima.nomeCliente);
+                $('#area-cliente').show();
+                $('#area-historico').hide();
+            } else {
+                $('#area-cliente').hide();
+                $('#area-historico').show();
+            }
+        });
+
+        PainelWeb.on('callstart', function() {
+            var scope = angular.element(document.getElementById('layout')).scope();
+            if (scope && scope.ultima && scope.ultima.nomeCliente && scope.ultima.nomeCliente.trim() !== '') {
+                $('#nome-cliente-valor').text(scope.ultima.nomeCliente);
+                $('#area-cliente').show();
+                $('#area-historico').hide();
+            } else {
+                $('#area-cliente').hide();
+                $('#area-historico').show();
+            }
+        });
+
+        // Estado inicial: mostra histórico
+        $('#area-historico').show();
+        $('#area-cliente').hide();
 
         // Nome da empresa via config
         var url = PainelWeb.Storage.get('url');

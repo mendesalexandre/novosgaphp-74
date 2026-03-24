@@ -3,54 +3,59 @@
     <!-- Barra topo -->
     <div class="barra-topo">
         <span class="nome-empresa" id="nome-empresa-painel">CARTÓRIO DE REGISTRO CIVIL</span>
-        <div class="topo-relogio">
-            <span id="cart-hours">00</span><span class="sep">:</span><span id="cart-min">00</span><span class="sep">:</span><span id="cart-sec">00</span>
-        </div>
     </div>
 
     <div class="corpo">
-        <!-- Coluna esquerda: blocos empilhados -->
+        <!-- Coluna esquerda -->
         <div class="col-esquerda">
-            <div class="bloco-senha-header">Senha</div>
-            <div class="bloco-senha-corpo blink">
+            <div class="bloco-label">Senha</div>
+            <div class="bloco-senha blink">
                 <span>{{ ultima.texto }}</span>
             </div>
 
-            <div class="bloco-guiche-header">Guichê</div>
-            <div class="bloco-guiche-corpo blink">
+            <div class="bloco-label">Guichê</div>
+            <div class="bloco-guiche blink">
                 <span>{{ ultima.numeroLocal }}</span>
             </div>
 
-            <div class="bloco-servico">
+            <div class="bloco-servico {{ ultima.styleClass }}">
                 <span>{{ ultima.servico || ultima.mensagem }}</span>
             </div>
 
             <div class="bloco-relogio">
                 <div class="hora">
-                    <span id="cart-hours2">00</span>
-                    <span class="sep"> : </span>
-                    <span id="cart-min2">00</span>
-                    <span class="sep"> : </span>
-                    <span id="cart-sec2">00</span>
+                    <span id="cart-h">00</span><span class="sep"> : </span><span id="cart-m">00</span><span class="sep"> : </span><span id="cart-s">00</span>
                 </div>
-                <div class="data" id="cart-data"></div>
+                <div class="data" id="cart-data-ext"></div>
             </div>
         </div>
 
-        <!-- Coluna direita: Mídia + Cliente -->
+        <!-- Coluna direita -->
         <div class="col-direita">
             <div id="media-container">
                 <div id="media"></div>
             </div>
 
-            <div class="bloco-cliente">
-                <span class="label-cliente">Cliente:</span>
-                <span class="nome-cliente">{{ ultima.nomeCliente || '' }}</span>
+            <!-- Se tem nome do cliente, mostra. Senão, mostra histórico -->
+            <div class="bloco-inferior">
+                <div class="bloco-cliente" id="area-cliente" style="display:none">
+                    <span class="label-cliente">Cliente:</span>
+                    <span class="nome-cliente" id="nome-cliente-valor"></span>
+                </div>
+                <div class="bloco-historico" id="area-historico">
+                    <div class="hist-titulo">Últimas senhas chamadas</div>
+                    <div class="hist-lista">
+                        <div class="hist-item {{ senha.styleClass }}" ng-repeat="senha in historico | limitTo: 5">
+                            <span class="hist-senha">{{ senha.texto }}</span>
+                            <span class="hist-local">{{ senha.local }} {{ senha.numeroLocal }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Rodapé: notícias (oculto, pode habilitar via CSS) -->
+    <!-- Notícias rodapé -->
     <div id="news" class="rodape-news">
         <div class="panel-heading"><span class="pull-right text-muted"></span></div>
         <div class="panel-body"></div>
