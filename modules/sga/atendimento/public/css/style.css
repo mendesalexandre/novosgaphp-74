@@ -237,62 +237,129 @@
 
 #atendimento #fila ul {
     min-height: 50px;
-    padding: 10px 15px;
+    padding: 10px;
     border-radius: 8px;
-    background-color: #f8f9fa;
+    background-color: #f4f6f8;
     border: 1px solid #e8e8e8;
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
-    align-items: center;
-}
-
-#atendimento #fila ul li {
+    gap: 10px;
     list-style: none;
-    display: inline-flex;
+}
+
+/* Card da fila */
+#atendimento #fila .fila-card {
+    width: 180px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+#atendimento #fila .fila-card.proximo {
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+}
+
+#atendimento #fila .fila-card.prioridade {
+    border-color: #e74c3c;
+}
+
+/* Header do card */
+#atendimento #fila .fila-card-header {
+    padding: 8px 10px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 5px;
 }
 
-#atendimento #fila ul li a {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 4px;
-    background: #fff;
-    border: 1px solid #ddd;
-    color: #333;
-    font-weight: 500;
-    text-decoration: none;
-    font-size: 14px;
-}
-
-#atendimento #fila ul li a.proximo {
-    font-size: 18px;
+#atendimento #fila .fila-card.proximo .fila-card-header {
     background: #eaf4fe;
-    border-color: #3498db;
-    color: #2980b9;
-    font-weight: bold;
 }
 
-#atendimento #fila ul li a.prioridade {
-    color: #e74c3c;
-    border-color: #e74c3c;
+#atendimento #fila .fila-card.prioridade .fila-card-header {
     background: #fdf2f2;
 }
 
-#atendimento #fila ul li.empty {
+#atendimento #fila .fila-senha {
+    font-size: 16px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+#atendimento #fila .fila-card.prioridade .fila-senha {
+    color: #e74c3c;
+}
+
+#atendimento #fila .fila-badge-prio {
+    font-size: 10px;
+    background: #e74c3c;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Body do card */
+#atendimento #fila .fila-card-body {
+    padding: 8px 10px;
+    flex: 1;
+}
+
+#atendimento #fila .fila-servico {
+    font-size: 12px;
+    color: #555;
+    font-weight: 500;
+    margin-bottom: 3px;
+}
+
+#atendimento #fila .fila-espera {
+    font-size: 11px;
     color: #999;
-    font-style: italic;
-    padding: 10px;
-    width: 100%;
+}
+
+#atendimento #fila .fila-espera .glyphicon {
+    font-size: 10px;
+}
+
+#atendimento #fila .fila-cliente {
+    font-size: 11px;
+    color: #3498db;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Footer do card (botão chamar) */
+#atendimento #fila .fila-card-footer {
+    padding: 6px 10px;
+    border-top: 1px solid #eee;
     text-align: center;
 }
 
-/* Botão chamar direto na fila */
 #atendimento #fila .btn-chamar-direto {
     font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 3px;
+    padding: 3px 12px;
+    border-radius: 4px;
+    width: 100%;
+}
+
+/* Fila vazia */
+#atendimento #fila ul li.empty {
+    color: #999;
+    font-style: italic;
+    padding: 15px;
+    width: 100%;
+    text-align: center;
+    list-style: none;
 }
 
 p.links {

@@ -113,15 +113,25 @@ SGA.Atendimento = {
                         document.body.focus();
                         for (var i = 0; i < atendimentos.length; i++) {
                             var atendimento = atendimentos[i];
-                            var cssClass = atendimento.prioridade ? 'prioridade' : '';
-                            if (i == 0) {
-                                cssClass += ' proximo';
-                            }
+                            var cssClass = atendimento.prioridade ? 'fila-card prioridade' : 'fila-card';
+                            if (i == 0) cssClass += ' proximo';
                             var onclick = 'SGA.Atendimento.infoSenha(' + atendimento.id + ')';
-                            var title = atendimento.servico + ' (' + atendimento.espera + ')';
-                            var item = '<li><a class="' + cssClass + '" href="javascript:void(0)" onclick="' + onclick + '" title="' + title + '">' + atendimento.senha + '</a>';
+                            var item = '<li class="' + cssClass + '">';
+                            item += '<div class="fila-card-header" onclick="' + onclick + '">';
+                            item += '<span class="fila-senha">' + atendimento.senha + '</span>';
+                            if (atendimento.prioridade) {
+                                item += '<span class="fila-badge-prio">' + atendimento.nomePrioridade + '</span>';
+                            }
+                            item += '</div>';
+                            item += '<div class="fila-card-body">';
+                            item += '<div class="fila-servico">' + atendimento.servico + '</div>';
+                            item += '<div class="fila-espera"><span class="glyphicon glyphicon-time"></span> ' + atendimento.espera + '</div>';
+                            if (atendimento.cliente && atendimento.cliente.nome) {
+                                item += '<div class="fila-cliente">' + atendimento.cliente.nome + '</div>';
+                            }
+                            item += '</div>';
                             if (SGA.Atendimento.permitirChamarDireta) {
-                                item += ' <button class="btn btn-xs btn-primary btn-chamar-direto" onclick="SGA.Atendimento.chamarEspecifico(' + atendimento.id + ', this)" title="Chamar esta senha: ' + atendimento.senha + '">Chamar</button>';
+                                item += '<div class="fila-card-footer"><button class="btn btn-xs btn-primary btn-chamar-direto" onclick="SGA.Atendimento.chamarEspecifico(' + atendimento.id + ', this)" title="Chamar esta senha: ' + atendimento.senha + '"><span class="glyphicon glyphicon-bullhorn"></span> Chamar</button></div>';
                             }
                             item += '</li>';
                             list.append(item);
