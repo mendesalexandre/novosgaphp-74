@@ -66,9 +66,10 @@
 }
 
 .cartorio .bloco-senha span {
-    font-size: 10vw;
+    font-size: 7vw;
     font-weight: bold;
     color: #fff;
+    white-space: nowrap;
 }
 
 .cartorio .bloco-guiche {
@@ -80,7 +81,7 @@
 }
 
 .cartorio .bloco-guiche span {
-    font-size: 8vw;
+    font-size: 6vw;
     font-weight: bold;
     color: #fff;
 }
