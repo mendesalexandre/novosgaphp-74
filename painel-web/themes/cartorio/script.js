@@ -135,6 +135,8 @@
                 case 'audio':
                     elem.append(
                         $('<' + widget.type + '></' + widget.type + '>')
+                            .prop('autoplay', true)
+                            .prop('muted', true)
                             .on('ended error', function() { slider.nextSlide(); })
                             .on('loadeddata canplay', function() {
                                 elem.addClass('loaded');
