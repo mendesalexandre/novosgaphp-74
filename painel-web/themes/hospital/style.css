@@ -227,45 +227,20 @@
 #layout.azul #senha { background-color: #0000ff; }
 #layout.azul #senha span { color: #fff; }
 
-/* ===== Resolução não suportada ===== */
-@media only screen and (max-width: 790px) {
-    #layout-content { display: none; }
-    #error { display: block; }
-}
+/* ===== Tamanhos responsivos (qualquer resolução) ===== */
+#mensagem { height: auto; }
+#mensagem span { font-size: 4vw; }
+#senha span { font-size: 16vw; }
+#local span { font-size: 4vw; }
+#local-numero span { font-size: 10vw; }
 
-/* 1440x900 */
-@media only screen and (max-width: 1440px) and (min-width: 1025px) {
-    #mensagem { height: auto; }
-    #mensagem span { font-size: 5em; }
-    #senha span { font-size: 24em; }
-    #historico { height: 200px; }
-    #local span { font-size: 6em; }
-    #local-numero span { font-size: 14em; }
-    .senha-chamada .senha span { font-size: 8em; }
-    .senha-chamada .local span { font-size: 4em; }
-}
+#historico { height: 20vh; }
+#historico .senhas { padding-top: 2vh; }
+.senha-chamada .senha span { font-size: 5vw; }
+.senha-chamada .local span { font-size: 2.5vw; }
 
-/* 1024x768 */
-@media only screen and (max-width: 1024px) and (min-width: 801px) {
-    #mensagem { height: auto; }
-    #mensagem span { font-size: 5em; }
-    #senha span { font-size: 18em; }
-    #historico { height: 200px; }
-    #historico .senhas { padding-top: 30px; }
-    #local span { font-size: 4em; }
-    #local-numero span { font-size: 12em; }
-    .senha-chamada .senha span { font-size: 6em; }
-    .senha-chamada .local span { font-size: 3em; }
-}
-
-/* 800x600 */
-@media only screen and (max-width: 800px) {
-    #mensagem { height: auto; }
-    #mensagem span { font-size: 4em; }
-    #historico { display: none; }
-    #senha span { font-size: 14em; }
-    #local span { font-size: 3em; }
-    #local-numero span { font-size: 10em; }
-    .senha-chamada .senha span { font-size: 4em; }
-    .senha-chamada .local span { font-size: 2em; }
-}
+#layout .topo h1 { font-size: 3vw; }
+#layout .topo h2 { font-size: 2vw; }
+.clock ul.time li { font-size: 4vw; }
+.container-date #day { font-size: 1.5vw; }
+.container-date #date { font-size: 1.5vw; }
