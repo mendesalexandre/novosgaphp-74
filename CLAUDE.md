@@ -14,28 +14,80 @@ Sistema de gerenciamento de fila de atendimento (senhas) open source, baseado no
 
 ---
 
-## Instalação Rápida
+## Instalação
+
+### Pré-requisitos
+
+- PHP >= 7.1 (testado com 8.4)
+- PostgreSQL
+- Composer
+- Extensões PHP: `pdo`, `pdo_pgsql`, `json`, `gettext`, `mbstring`
+- Para produção: nginx + PHP-FPM
+
+### Passo 1 — Código e dependências
 
 ```bash
-# 1. Clonar o repositório
 git clone git@github.com:mendesalexandre/novosgaphp-74.git novosga
 cd novosga
-
-# 2. Instalar dependências
 composer install --no-scripts
+```
 
-# 3. Criar banco PostgreSQL
+### Passo 2 — Banco de dados
+
+```bash
 sudo -u postgres psql -c "CREATE USER novosga WITH PASSWORD 'novosga';"
 sudo -u postgres psql -c "CREATE DATABASE novosga OWNER novosga ENCODING 'UTF8';"
+```
 
-# 4. Rodar instalação automatizada
+### Passo 3 — Instalação automatizada
+
+```bash
 php bin/install.php
+```
 
-# 5. Subir o servidor
+Isso cria tudo: schema, módulos, dados iniciais, usuário `admin`/`123456`, OAuth2.
+
+### Passo 4 — Permissões
+
+```bash
+chmod 777 var/cache
+chmod 777 config
+mkdir -p modules/vetor/panel/public/uploads && chmod 777 modules/vetor/panel/public/uploads
+```
+
+### Passo 5a — Servidor de desenvolvimento (PHP built-in)
+
+```bash
 php -S 0.0.0.0:8888 -t public
 ```
 
-Acesso: http://localhost:8888 — Login: `admin` / `123456`
+Acesso: http://localhost:8888
+
+### Passo 5b — Servidor de produção (nginx + PHP-FPM)
+
+```bash
+# 1. Configurar PHP-FPM para upload grande
+sudo tee /etc/php.d/99-novosga.ini <<< $'upload_max_filesize = 200M\npost_max_size = 210M'
+sudo systemctl restart php-fpm
+
+# 2. Upstream PHP-FPM (se ainda não existir)
+# Arquivo /etc/nginx/conf.d/php-fpm.conf:
+#   upstream php-fpm { server unix:/run/php-fpm/www.sock; }
+
+# 3. Copiar vhost do projeto
+sudo cp nginx.conf.example /etc/nginx/sites-enabled/novosga.conf
+
+# 4. Editar e ajustar os caminhos
+sudo sed -i "s|/caminho/para/novosga|$(pwd)|g" /etc/nginx/sites-enabled/novosga.conf
+
+# 5. Adicionar ao /etc/hosts
+echo "127.0.0.1 novosga.local" | sudo tee -a /etc/hosts
+
+# 6. Testar e recarregar
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Acesso: http://novosga.local — Login: `admin` / `123456`
 
 ### Instalador Automatizado (bin/install.php)
 
@@ -320,27 +372,25 @@ Página standalone sem dependências. Acesso: http://novosga.local/painel/?unida
 
 ## Nginx (vhost)
 
-Arquivo: `/etc/nginx/sites-enabled/novosga.conf`
+Arquivo de exemplo incluído no projeto: `nginx.conf.example`
 
-```nginx
-server {
-    listen 80;
-    server_name novosga.local;
-    root /caminho/para/novosga/public;
-    index index.php index.html;
-    client_max_body_size 200M;
-
-    location ^~ /totem/ { alias /caminho/para/novosga/totem/; index index.html; }
-    location ^~ /painel-web/ { alias /caminho/para/novosga/painel-web/; index index.html; }
-    location ^~ /modules/vetor.panel/resources/uploads/ { alias /caminho/para/novosga/modules/vetor/panel/public/uploads/; }
-    location ^~ /api/ { try_files $uri $uri/ /api/index.php$is_args$args; location ~ \.php$ { fastcgi_pass php-fpm; fastcgi_index index.php; fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; include fastcgi_params; } }
-    location / { try_files $uri $uri/ /index.php$is_args$args; }
-    location ~ \.php$ { fastcgi_pass php-fpm; fastcgi_index index.php; fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; include fastcgi_params; }
-    location ~ /\. { deny all; }
-}
+```bash
+# Copiar e ajustar caminhos automaticamente
+sudo cp nginx.conf.example /etc/nginx/sites-enabled/novosga.conf
+sudo sed -i "s|/caminho/para/novosga|$(pwd)|g" /etc/nginx/sites-enabled/novosga.conf
+echo "127.0.0.1 novosga.local" | sudo tee -a /etc/hosts
+sudo nginx -t && sudo systemctl reload nginx
 ```
 
-Requer: `/etc/hosts` → `127.0.0.1 novosga.local`
+O vhost configura:
+- `novosga.local` na porta 80
+- document root: `public/`
+- `/totem/` → totem de triagem touch
+- `/painel-web/` → painel web com temas
+- `/api/` → API REST
+- `/modules/vetor.panel/resources/uploads/` → uploads de mídia
+- Upload máximo: 200MB
+- PHP-FPM via upstream `php-fpm`
 
 ---
 

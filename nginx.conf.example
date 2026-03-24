@@ -1,0 +1,83 @@
+# =============================================
+# NovoSGA - Configuração Nginx
+# =============================================
+#
+# Uso:
+#   1. Copie este arquivo:
+#      sudo cp nginx.conf.example /etc/nginx/sites-enabled/novosga.conf
+#
+#   2. Ajuste os caminhos (substitua /caminho/para/novosga pelo caminho real)
+#
+#   3. Adicione ao /etc/hosts:
+#      echo "127.0.0.1 novosga.local" | sudo tee -a /etc/hosts
+#
+#   4. Teste e recarregue:
+#      sudo nginx -t && sudo systemctl reload nginx
+#
+# Requer:
+#   - PHP-FPM rodando (upstream php-fpm em /etc/nginx/conf.d/php-fpm.conf)
+#   - PostgreSQL rodando
+#   - composer install executado
+#   - php bin/install.php executado
+
+server {
+    listen 80;
+    server_name novosga.local;
+
+    charset utf-8;
+    root /caminho/para/novosga/public;
+    index index.php index.html;
+
+    access_log /var/log/nginx/novosga-access.log;
+    error_log  /var/log/nginx/novosga-error.log;
+
+    # Upload de vídeos/imagens (Vetor Panel)
+    client_max_body_size 200M;
+
+    # Totem de triagem touch
+    location ^~ /totem/ {
+        alias /caminho/para/novosga/totem/;
+        index index.html;
+    }
+
+    # Painel Web (AngularJS + temas)
+    location ^~ /painel-web/ {
+        alias /caminho/para/novosga/painel-web/;
+        index index.html;
+    }
+
+    # Uploads do Vetor Panel (servir arquivos estáticos)
+    location ^~ /modules/vetor.panel/resources/uploads/ {
+        alias /caminho/para/novosga/modules/vetor/panel/public/uploads/;
+    }
+
+    # API REST (próprio index.php)
+    location ^~ /api/ {
+        try_files $uri $uri/ /api/index.php$is_args$args;
+
+        location ~ \.php$ {
+            fastcgi_pass php-fpm;
+            fastcgi_index index.php;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            include fastcgi_params;
+        }
+    }
+
+    # Tudo que não é arquivo vai para o Slim router
+    location / {
+        try_files $uri $uri/ /index.php$is_args$args;
+    }
+
+    # PHP-FPM
+    location ~ \.php$ {
+        fastcgi_pass php-fpm;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    # Bloquear arquivos ocultos
+    location ~ /\. {
+        deny all;
+    }
+}
