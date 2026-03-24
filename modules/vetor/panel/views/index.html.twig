@@ -1,0 +1,232 @@
+{% extends "module.html.twig" %}
+{% block moduleContent %}
+<div id="vetor-panel">
+    <ul class="nav nav-tabs">
+        <li class="active"><a href="#tab-widgets" data-toggle="tab">Widgets</a></li>
+        <li><a href="#tab-arquivos" data-toggle="tab">Arquivos</a></li>
+    </ul>
+    <div class="tab-content">
+        <div id="tab-widgets" class="tab-pane active">
+            <div class="well well-sm" style="margin-top:10px">
+                Configure os widgets que serão exibidos na área de mídia do painel de senhas (tema Vetor).
+                Você pode adicionar vídeos (URL ou arquivo enviado), imagens e conteúdo HTML.
+            </div>
+
+            <div id="widgets-lista"></div>
+
+            <div style="margin-top:15px">
+                <button class="btn btn-success" onclick="VetorAdmin.adicionarWidget('video')">
+                    <span class="glyphicon glyphicon-film"></span> Vídeo
+                </button>
+                <button class="btn btn-info" onclick="VetorAdmin.adicionarWidget('image')">
+                    <span class="glyphicon glyphicon-picture"></span> Imagem
+                </button>
+                <button class="btn btn-warning" onclick="VetorAdmin.adicionarWidget('html')">
+                    <span class="glyphicon glyphicon-pencil"></span> HTML
+                </button>
+                <button class="btn btn-primary pull-right" onclick="VetorAdmin.salvar()">
+                    <span class="glyphicon glyphicon-floppy-disk"></span> Salvar Configuração
+                </button>
+            </div>
+        </div>
+
+        <div id="tab-arquivos" class="tab-pane">
+            <div style="margin-top:10px">
+                <form id="form-upload" enctype="multipart/form-data" onsubmit="return false">
+                    <div class="form-group">
+                        <label>Enviar arquivo (vídeo, imagem — máx. 200MB)</label>
+                        <div class="input-group">
+                            <input type="file" id="input-arquivo" name="arquivo" class="form-control"
+                                   accept="video/*,image/*,audio/*">
+                            <span class="input-group-btn">
+                                <button class="btn btn-primary" onclick="VetorAdmin.upload()">
+                                    <span class="glyphicon glyphicon-upload"></span> Enviar
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </form>
+                <div id="upload-progresso" style="display:none">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped active" style="width:100%">Enviando...</div>
+                    </div>
+                </div>
+            </div>
+            <h4>Arquivos no servidor</h4>
+            <table class="table table-striped" id="tabela-arquivos">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Tipo</th>
+                        <th>Tamanho</th>
+                        <th>URL</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+var VetorAdmin = {
+    widgets: {{ widgets|json_encode()|raw }},
+
+    renderizar: function() {
+        var lista = $('#widgets-lista');
+        lista.html('');
+        for (var i = 0; i < VetorAdmin.widgets.length; i++) {
+            var w = VetorAdmin.widgets[i];
+            var card = '<div class="panel panel-default" data-index="' + i + '">';
+            card += '<div class="panel-heading">';
+            card += '<strong>#' + (i+1) + ' ' + w.type.toUpperCase() + '</strong>';
+            card += ' — <input type="text" value="' + (w.title || '') + '" placeholder="Título" class="input-sm" onchange="VetorAdmin.widgets[' + i + '].title=this.value" style="width:200px">';
+            card += ' <label style="margin-left:15px"><input type="checkbox" ' + (w.active ? 'checked' : '') + ' onchange="VetorAdmin.widgets[' + i + '].active=this.checked"> Ativo</label>';
+            card += ' <button class="btn btn-xs btn-danger pull-right" onclick="VetorAdmin.removerWidget(' + i + ')"><span class="glyphicon glyphicon-trash"></span></button>';
+            if (i > 0) {
+                card += ' <button class="btn btn-xs btn-default pull-right" style="margin-right:5px" onclick="VetorAdmin.moverWidget(' + i + ',-1)"><span class="glyphicon glyphicon-arrow-up"></span></button>';
+            }
+            if (i < VetorAdmin.widgets.length - 1) {
+                card += ' <button class="btn btn-xs btn-default pull-right" style="margin-right:5px" onclick="VetorAdmin.moverWidget(' + i + ',1)"><span class="glyphicon glyphicon-arrow-down"></span></button>';
+            }
+            card += '</div>';
+            card += '<div class="panel-body">';
+
+            if (w.type === 'video' || w.type === 'image' || w.type === 'audio') {
+                card += '<div class="form-group"><label>URL do ' + w.type + '</label>';
+                card += '<input type="text" class="form-control" value="' + (w.content || '') + '" placeholder="http://... ou arquivo enviado" onchange="VetorAdmin.widgets[' + i + '].content=this.value"></div>';
+            } else if (w.type === 'html') {
+                card += '<div class="form-group"><label>Conteúdo HTML</label>';
+                card += '<textarea class="form-control" rows="4" onchange="VetorAdmin.widgets[' + i + '].content=this.value">' + (w.content || '') + '</textarea></div>';
+            }
+
+            card += '<div class="row">';
+            card += '<div class="col-sm-4"><label>Duração (ms)</label><input type="number" class="form-control" value="' + (w.duration || 10000) + '" onchange="VetorAdmin.widgets[' + i + '].duration=parseInt(this.value)"></div>';
+            card += '<div class="col-sm-4"><label>Volume (%)</label><input type="number" class="form-control" value="' + (w.volume || 100) + '" min="0" max="100" onchange="VetorAdmin.widgets[' + i + '].volume=parseInt(this.value)"></div>';
+            card += '<div class="col-sm-4"><label>Cor de fundo</label><input type="color" class="form-control" value="' + (w.background || '#000000') + '" onchange="VetorAdmin.widgets[' + i + '].background=this.value"></div>';
+            card += '</div>';
+
+            card += '</div></div>';
+            lista.append(card);
+        }
+    },
+
+    adicionarWidget: function(tipo) {
+        VetorAdmin.widgets.push({
+            type: tipo,
+            title: '',
+            content: '',
+            active: true,
+            duration: tipo === 'video' ? 0 : 10000,
+            volume: 100,
+            background: '#000000'
+        });
+        VetorAdmin.renderizar();
+    },
+
+    removerWidget: function(index) {
+        if (confirm('Remover este widget?')) {
+            VetorAdmin.widgets.splice(index, 1);
+            VetorAdmin.renderizar();
+        }
+    },
+
+    moverWidget: function(index, direcao) {
+        var novo = index + direcao;
+        var temp = VetorAdmin.widgets[index];
+        VetorAdmin.widgets[index] = VetorAdmin.widgets[novo];
+        VetorAdmin.widgets[novo] = temp;
+        VetorAdmin.renderizar();
+    },
+
+    salvar: function() {
+        SGA.ajax({
+            url: SGA.url('salvar'),
+            type: 'post',
+            data: { widgets: JSON.stringify(VetorAdmin.widgets) },
+            success: function(response) {
+                if (response.success) {
+                    alert('Configuração salva com sucesso!');
+                }
+            }
+        });
+    },
+
+    upload: function() {
+        var input = document.getElementById('input-arquivo');
+        if (!input.files || !input.files[0]) {
+            alert('Selecione um arquivo');
+            return;
+        }
+        var formData = new FormData();
+        formData.append('arquivo', input.files[0]);
+
+        $('#upload-progresso').show();
+
+        $.ajax({
+            url: SGA.url('upload'),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                $('#upload-progresso').hide();
+                if (response.success) {
+                    alert('Arquivo enviado: ' + response.data.url);
+                    input.value = '';
+                    VetorAdmin.carregarArquivos();
+                } else {
+                    alert('Erro: ' + response.message);
+                }
+            },
+            error: function() {
+                $('#upload-progresso').hide();
+                alert('Erro ao enviar arquivo');
+            }
+        });
+    },
+
+    carregarArquivos: function() {
+        SGA.ajax({
+            url: SGA.url('listar_arquivos'),
+            success: function(response) {
+                var tbody = $('#tabela-arquivos tbody');
+                tbody.html('');
+                if (response.success && response.data) {
+                    for (var i = 0; i < response.data.length; i++) {
+                        var a = response.data[i];
+                        var tamanho = (a.tamanho / 1024 / 1024).toFixed(2) + ' MB';
+                        var tr = '<tr>';
+                        tr += '<td>' + a.nome + '</td>';
+                        tr += '<td>' + a.tipo + '</td>';
+                        tr += '<td>' + tamanho + '</td>';
+                        tr += '<td><input type="text" class="form-control input-sm" value="' + a.url + '" onclick="this.select()" readonly></td>';
+                        tr += '<td><button class="btn btn-xs btn-danger" onclick="VetorAdmin.removerArquivo(\'' + a.nome + '\')"><span class="glyphicon glyphicon-trash"></span></button></td>';
+                        tr += '</tr>';
+                        tbody.append(tr);
+                    }
+                }
+            }
+        });
+    },
+
+    removerArquivo: function(nome) {
+        if (confirm('Remover o arquivo ' + nome + '?')) {
+            SGA.ajax({
+                url: SGA.url('remover_arquivo'),
+                type: 'post',
+                data: { nome: nome },
+                success: function() {
+                    VetorAdmin.carregarArquivos();
+                }
+            });
+        }
+    }
+};
+
+// Inicializar
+VetorAdmin.renderizar();
+VetorAdmin.carregarArquivos();
+</script>
+{% endblock %}

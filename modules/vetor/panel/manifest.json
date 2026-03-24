@@ -1,0 +1,10 @@
+{
+    "name": "Vetor Panel",
+    "version": "1.0.0",
+    "description": "Gerenciador de mídia do painel de senhas (vídeos, imagens, HTML)",
+    "author": {
+        "name": "NovoSGA",
+        "email": ""
+    },
+    "type": 1
+}
