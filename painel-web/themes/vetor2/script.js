@@ -535,6 +535,11 @@
         }
 
         var init = function() {
+            // Recalcular o slider caso o #media tenha sido re-renderizado
+            slider = $("#media");
+            slider.index = 0;
+            slider.widgets = [];
+
             // callbacks
             if (!attached) { 
                 PainelWeb.on('callstart', function() {

@@ -536,8 +536,13 @@
         }
 
         var init = function() {
+            // Recalcular o slider caso o #media tenha sido re-renderizado
+            slider = $("#media");
+            slider.index = 0;
+            slider.widgets = [];
+
             // callbacks
-            if (!attached) { 
+            if (!attached) {
                 PainelWeb.on('callstart', function() {
                     changeVolume(0);
                 });
@@ -575,22 +580,6 @@
                 elem.css('line-height', elem.parent().height() + 'px');
             });
         });
-
-        var tick = function(scope) {
-            scope.$apply(function() {
-                var date = new Date();
-                scope.clock = date.getTime();
-                scope.month = scope.months[date.getMonth()];
-                setTimeout(function() {
-                    tick(scope);
-                }, 1000);
-            });
-        };
-
-        // clock
-        var scope = angular.element(document.getElementById('relogio')).scope();
-        scope.months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-        tick(scope);
 
         PainelWeb.on('save', function() {
             init();
