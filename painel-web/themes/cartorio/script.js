@@ -620,9 +620,9 @@
             var h = ('0' + now.getHours()).slice(-2);
             var m = ('0' + now.getMinutes()).slice(-2);
             var s = ('0' + now.getSeconds()).slice(-2);
-            $('#cart-hours').text(h);
-            $('#cart-min').text(m);
-            $('#cart-sec').text(s);
+            $('#cart-hours, #cart-hours2').text(h);
+            $('#cart-min, #cart-min2').text(m);
+            $('#cart-sec, #cart-sec2').text(s);
             $('#cart-data').text(diasSemana[now.getDay()] + ', ' + now.getDate() + ' de ' + meses[now.getMonth()] + ' de ' + now.getFullYear());
         }, 1000);
 

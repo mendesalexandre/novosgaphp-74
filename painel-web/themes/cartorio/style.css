@@ -1,6 +1,5 @@
 /**
- * Tema Cartório — Cards separados
- * Inspirado no Totem.vue do projeto Senha
+ * Tema Cartório — Baseado no painel ARPEN Registro Civil
  */
 
 #layout, #layout * { line-height: 1; margin: 0; padding: 0; box-sizing: border-box; }
@@ -10,47 +9,39 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
-    background: #2c2c2c;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #b0b0b0;
     color: #fff;
     overflow: hidden;
 }
 
 /* ===== Barra topo ===== */
 .cartorio .barra-topo {
-    height: 52px;
-    background: #333;
+    height: 50px;
+    background: #3a3a3a;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 25px;
-    border-bottom: 3px solid #e94560;
+    padding: 0 20px;
     flex-shrink: 0;
 }
 
 .cartorio .barra-topo .nome-empresa {
-    font-size: 1.4em;
+    font-size: 1.6em;
     font-weight: bold;
-    color: #fff;
-    letter-spacing: 1px;
+    color: #4a9e6e;
+    font-style: italic;
 }
 
 .cartorio .topo-relogio {
-    font-size: 1.6em;
+    font-size: 1.3em;
     font-weight: bold;
-    color: #fff;
+    color: #aaa;
     font-family: 'Courier New', monospace;
-    letter-spacing: 2px;
 }
 
 .cartorio .topo-relogio .sep {
-    animation: cart-blink 1s infinite;
-    color: #e94560;
-}
-
-@keyframes cart-blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.2; }
+    color: #aaa;
 }
 
 /* ===== Corpo ===== */
@@ -60,141 +51,114 @@
     overflow: hidden;
 }
 
-/* ===== Coluna esquerda: Cards ===== */
+/* ===== Coluna esquerda ===== */
 .cartorio .col-esquerda {
-    width: 38%;
+    width: 34%;
     display: flex;
     flex-direction: column;
-    padding: 15px;
-    gap: 12px;
-    background: #363636;
+    flex-shrink: 0;
 }
 
-/* Cards genérico */
-.cartorio .card {
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-
-.cartorio .card-header {
-    padding: 6px 16px;
-    font-size: 0.9vw;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: rgba(255,255,255,0.8);
-}
-
-.cartorio .card-body {
-    padding: 8px 16px;
+/* Bloco Senha (azul claro) */
+.cartorio .bloco-senha-header {
+    background: #5a9ecf;
     text-align: center;
-}
-
-.cartorio .card-body span {
+    padding: 8px 0;
+    font-size: 1.5vw;
     font-weight: bold;
-    display: block;
+    color: #fff;
 }
 
-/* Card Senha */
-.cartorio .card-senha {
+.cartorio .bloco-senha-corpo {
+    background: #6ab0e0;
+    text-align: center;
     flex: 2;
     display: flex;
-    flex-direction: column;
-}
-
-.cartorio .card-senha .card-header {
-    background: #2980b9;
-    text-align: center;
-}
-
-.cartorio .card-senha .card-body {
-    background: #3498db;
-    flex: 1;
-    display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.cartorio .card-senha .card-body span {
-    font-size: 8vw;
+.cartorio .bloco-senha-corpo span {
+    font-size: 10vw;
+    font-weight: bold;
     color: #fff;
-    text-shadow: 2px 3px 6px rgba(0,0,0,0.3);
 }
 
-/* Card Guichê */
-.cartorio .card-guiche {
+/* Bloco Guichê (azul) */
+.cartorio .bloco-guiche-header {
+    background: #5a9ecf;
+    text-align: center;
+    padding: 6px 0;
+    font-size: 1.3vw;
+    font-weight: bold;
+    color: #fff;
+}
+
+.cartorio .bloco-guiche-corpo {
+    background: #6ab0e0;
+    text-align: center;
     flex: 1.5;
     display: flex;
-    flex-direction: column;
-}
-
-.cartorio .card-guiche .card-header {
-    background: #27ae60;
-    text-align: center;
-}
-
-.cartorio .card-guiche .card-body {
-    background: #2ecc71;
-    flex: 1;
-    display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.cartorio .card-guiche .card-body span {
-    font-size: 5vw;
-    color: #fff;
-    text-shadow: 1px 2px 4px rgba(0,0,0,0.3);
-}
-
-/* Card Serviço */
-.cartorio .card-servico .card-header {
-    background: #c0392b;
-    text-align: center;
-}
-
-.cartorio .card-servico .card-body {
-    background: #e74c3c;
-    padding: 12px 16px;
-}
-
-.cartorio .card-servico .card-body span {
-    font-size: 1.6vw;
+.cartorio .bloco-guiche-corpo span {
+    font-size: 8vw;
+    font-weight: bold;
     color: #fff;
 }
 
-/* Card Cliente */
-.cartorio .card-cliente .card-header {
-    background: #d4a017;
+/* Bloco Serviço (vermelho) */
+.cartorio .bloco-servico {
+    background: #d32f2f;
     text-align: center;
-    color: #333;
+    padding: 10px 8px;
+    flex-shrink: 0;
 }
 
-.cartorio .card-cliente .card-body {
-    background: #f1c40f;
-    padding: 12px 16px;
+.cartorio .bloco-servico span {
+    font-size: 1.4vw;
+    font-weight: bold;
+    color: #fff;
 }
 
-.cartorio .card-cliente .card-body span {
-    font-size: 1.8vw;
-    color: #333;
-}
-
-/* Data */
-.cartorio .bloco-data {
+/* Bloco Relógio (azul escuro) */
+.cartorio .bloco-relogio {
+    background: #5a9ecf;
     text-align: center;
-    padding: 8px;
-    color: #aaa;
+    padding: 12px 10px;
+    flex-shrink: 0;
+}
+
+.cartorio .bloco-relogio .hora span {
+    font-size: 3vw;
+    font-weight: bold;
+    color: #fff;
+}
+
+.cartorio .bloco-relogio .hora .sep {
+    animation: cart-blink 1s infinite;
+    color: rgba(255,255,255,0.5);
+}
+
+@keyframes cart-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+}
+
+.cartorio .bloco-relogio .data {
     font-size: 0.9vw;
+    color: rgba(255,255,255,0.8);
+    margin-top: 4px;
 }
 
-/* ===== Coluna direita: Mídia + Histórico ===== */
+/* ===== Coluna direita ===== */
 .cartorio .col-direita {
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: #1a1a1a;
+    background: #000;
 }
 
 .cartorio #media-container {
@@ -213,80 +177,38 @@
 .cartorio #media video,
 .cartorio #media img { width: 100%; height: 100%; object-fit: contain; vertical-align: middle; }
 
-/* Histórico horizontal */
-.cartorio .historico-bar {
-    background: #2a2a2a;
-    border-top: 2px solid #444;
-    padding: 10px 15px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
+/* Bloco Cliente (amarelo) */
+.cartorio .bloco-cliente {
+    background: #f0a500;
+    padding: 12px 25px;
     flex-shrink: 0;
 }
 
-.cartorio .historico-titulo {
-    font-size: 0.8vw;
-    color: #888;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    white-space: nowrap;
-}
-
-.cartorio .historico-lista {
-    display: flex;
-    gap: 10px;
-    flex: 1;
-    overflow: hidden;
-}
-
-.cartorio .historico-item {
-    background: #3a3a3a;
-    border-radius: 6px;
-    padding: 8px 15px;
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    flex-shrink: 0;
-}
-
-.cartorio .hist-senha {
-    font-size: 1.4vw;
-    font-weight: bold;
-    color: #ccc;
-}
-
-.cartorio .hist-local {
+.cartorio .bloco-cliente .label-cliente {
     font-size: 0.9vw;
-    color: #888;
+    color: rgba(0,0,0,0.5);
+    display: block;
+    margin-bottom: 2px;
 }
 
-.cartorio .historico-item.prioridade .hist-senha {
-    color: #e74c3c;
+.cartorio .bloco-cliente .nome-cliente {
+    font-size: 2.8vw;
+    font-weight: bold;
+    color: #333;
+    display: block;
 }
 
 /* ===== Rodapé notícias ===== */
 .cartorio .rodape-news {
-    height: 45px;
-    background: #222;
-    border-top: 2px solid #e94560;
+    height: 0;
     overflow: hidden;
-    flex-shrink: 0;
 }
 
 .cartorio .rodape-news .panel-heading { display: none; }
 
-.cartorio .rodape-news .panel-body {
-    font-size: 1.2em;
-    color: #ccc;
-    padding: 10px 25px;
-    white-space: nowrap;
-}
-
 /* ===== Cores por tipo ===== */
-#layout.normal .cartorio .card-senha .card-body { background: #3498db; }
-#layout.normal .cartorio .card-senha .card-header { background: #2980b9; }
-
-#layout.prioridade .cartorio .card-senha .card-body { background: #e74c3c; }
-#layout.prioridade .cartorio .card-senha .card-header { background: #c0392b; }
-#layout.prioridade .cartorio .card-guiche .card-body { background: #e74c3c; }
-#layout.prioridade .cartorio .card-guiche .card-header { background: #c0392b; }
+#layout.prioridade .cartorio .bloco-senha-corpo { background: #e74c3c; }
+#layout.prioridade .cartorio .bloco-senha-header { background: #c0392b; }
+#layout.prioridade .cartorio .bloco-guiche-corpo { background: #e74c3c; }
+#layout.prioridade .cartorio .bloco-guiche-header { background: #c0392b; }
+#layout.prioridade .cartorio .bloco-relogio { background: #c0392b; }
