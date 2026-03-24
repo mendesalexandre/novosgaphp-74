@@ -1,5 +1,5 @@
 <div class="header">
-    <p>{% trans %}Período de {{ dataInicial }} a {{ dataFinal }}{% endtrans %}</p>
+    <p>{% trans %}Período de {{ dataInicial }} a {{ dataFinal }}{% endtrans %}{% if nomeAtendente is defined and nomeAtendente %} &mdash; {% trans %}Atendente{% endtrans %}: {{ nomeAtendente }}{% endif %}</p>
 </div>
 <table class="table table-striped">
     <thead>

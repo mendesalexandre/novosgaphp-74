@@ -39,11 +39,12 @@ class EstatisticasController extends ModuleController
             1 => new Relatorio(_('Serviços Disponíveis - Global'), 'servicos_disponiveis_global'),
             2 => new Relatorio(_('Serviços Disponíveis - Unidade'), 'servicos_disponiveis_unidades', 'unidade'),
             3 => new Relatorio(_('Serviços codificados'), 'servicos_codificados', 'unidade,date-range'),
-            4 => new Relatorio(_('Atendimentos concluídos'), 'atendimentos_concluidos', 'unidade,date-range'),
-            5 => new Relatorio(_('Atendimentos em todos os status'), 'atendimentos_status', 'unidade,date-range'),
-            6 => new Relatorio(_('Tempos médios por Atendente'), 'tempo_medio_atendentes', 'date-range'),
+            4 => new Relatorio(_('Atendimentos concluídos'), 'atendimentos_concluidos', 'unidade,date-range,atendente'),
+            5 => new Relatorio(_('Atendimentos em todos os status'), 'atendimentos_status', 'unidade,date-range,atendente'),
+            6 => new Relatorio(_('Tempos médios por Atendente'), 'tempo_medio_atendentes', 'date-range,atendente'),
             7 => new Relatorio(_('Lotações'), 'lotacoes', 'unidade'),
             8 => new Relatorio(_('Cargos'), 'cargos'),
+            9 => new Relatorio(_('Tempo de espera por Serviço'), 'tempo_espera_servico', 'unidade,date-range'),
         );
     }
 
@@ -63,6 +64,11 @@ class EstatisticasController extends ModuleController
         }
         $this->app()->view()->set('unidadesJson', json_encode($arr));
         $this->app()->view()->set('now', DateUtil::now(_('d/m/Y')));
+        // atendentes para filtro
+        $queryAtendentes = $this->em()->createQuery("
+            SELECT e FROM Novosga\Model\Usuario e WHERE e.status = 1 ORDER BY e.nome
+        ");
+        $this->app()->view()->set('atendentes', $queryAtendentes->getResult());
     }
 
     /**
@@ -132,6 +138,7 @@ class EstatisticasController extends ModuleController
         $dataFinal = $context->request()->get('final');
         $unidade = (int) $context->request()->get('unidade');
         $unidade = ($unidade > 0) ? $unidade : 0;
+        $atendente = (int) $context->request()->get('atendente');
         if (!isset($this->relatorios[$id])) {
             throw new Exception(_('Relatório inválido'));
         }
@@ -150,13 +157,13 @@ class EstatisticasController extends ModuleController
             $relatorio->setDados($this->servicos_codificados($dataInicial, $dataFinalSql, $unidade));
             break;
         case 4:
-            $relatorio->setDados($this->atendimentos_concluidos($dataInicial, $dataFinalSql, $unidade));
+            $relatorio->setDados($this->atendimentos_concluidos($dataInicial, $dataFinalSql, $unidade, $atendente));
             break;
         case 5:
-            $relatorio->setDados($this->atendimentos_status($dataInicial, $dataFinalSql, $unidade));
+            $relatorio->setDados($this->atendimentos_status($dataInicial, $dataFinalSql, $unidade, $atendente));
             break;
         case 6:
-            $relatorio->setDados($this->tempo_medio_atendentes($dataInicial, $dataFinalSql));
+            $relatorio->setDados($this->tempo_medio_atendentes($dataInicial, $dataFinalSql, $atendente));
             break;
         case 7:
             $servico = $context->request()->get('servico');
@@ -165,11 +172,25 @@ class EstatisticasController extends ModuleController
         case 8:
             $relatorio->setDados($this->cargos());
             break;
+        case 9:
+            $relatorio->setDados($this->tempo_espera_servico($dataInicial, $dataFinalSql, $unidade));
+            break;
         }
+
+        // nome do atendente filtrado
+        $nomeAtendente = '';
+        if ($atendente > 0) {
+            $usuarioObj = $this->em()->find('Novosga\Model\Usuario', $atendente);
+            if ($usuarioObj) {
+                $nomeAtendente = $usuarioObj->getNome() . ' ' . $usuarioObj->getSobrenome();
+            }
+        }
+
         return [
             'relatorio' => $relatorio,
             'dataInicial' => $dataInicialFmt,
             'dataFinal' => $dataFinalFmt,
+            'nomeAtendente' => $nomeAtendente,
             'page' => "relatorios/{$relatorio->getArquivo()}.html.twig",
             'isNumeracaoServico' => AtendimentoService::isNumeracaoServico(),
         ];
@@ -181,6 +202,7 @@ class EstatisticasController extends ModuleController
         $this->app()->view()->set('relatorio', $dados['relatorio']);
         $this->app()->view()->set('dataInicial', $dados['dataInicial']);
         $this->app()->view()->set('dataFinal', $dados['dataFinal']);
+        $this->app()->view()->set('nomeAtendente', $dados['nomeAtendente']);
         $this->app()->view()->set('page', $dados['page']);
         $this->app()->view()->set('isNumeracaoServico', $dados['isNumeracaoServico']);
     }
@@ -201,6 +223,7 @@ class EstatisticasController extends ModuleController
             'relatorio' => $relatorio,
             'dataInicial' => $dados['dataInicial'],
             'dataFinal' => $dados['dataFinal'],
+            'nomeAtendente' => $dados['nomeAtendente'],
             'isNumeracaoServico' => $dados['isNumeracaoServico'],
             'version' => App::VERSION,
             'module' => $context->getModulo(),
@@ -494,11 +517,11 @@ class EstatisticasController extends ModuleController
         return $dados;
     }
 
-    private function atendimentos_concluidos($dataInicial, $dataFinal, $unidadeId = 0)
+    private function atendimentos_concluidos($dataInicial, $dataFinal, $unidadeId = 0, $atendenteId = 0)
     {
         $unidades = $this->unidadesArray($unidadeId);
         $dados = array();
-        $query = $this->em()->createQuery("
+        $dql = "
             SELECT
                 e
             FROM
@@ -508,12 +531,18 @@ class EstatisticasController extends ModuleController
                 e.status = :status AND
                 e.dataChegada >= :dataInicial AND
                 e.dataChegada <= :dataFinal
-            ORDER BY
-                e.dataChegada
-        ");
+        ";
+        if ($atendenteId > 0) {
+            $dql .= " AND e.usuario = :atendente";
+        }
+        $dql .= " ORDER BY e.dataChegada";
+        $query = $this->em()->createQuery($dql);
         $query->setParameter('status', AtendimentoService::ATENDIMENTO_ENCERRADO_CODIFICADO);
         $query->setParameter('dataInicial', $dataInicial);
         $query->setParameter('dataFinal', $dataFinal);
+        if ($atendenteId > 0) {
+            $query->setParameter('atendente', $atendenteId);
+        }
         $query->setMaxResults(self::MAX_RESULTS);
         foreach ($unidades as $unidade) {
             $query->setParameter('unidade', $unidade);
@@ -526,11 +555,11 @@ class EstatisticasController extends ModuleController
         return $dados;
     }
 
-    private function atendimentos_status($dataInicial, $dataFinal, $unidadeId = 0)
+    private function atendimentos_status($dataInicial, $dataFinal, $unidadeId = 0, $atendenteId = 0)
     {
         $unidades = $this->unidadesArray($unidadeId);
         $dados = array();
-        $query = $this->em()->createQuery("
+        $dql = "
             SELECT
                 e
             FROM
@@ -539,11 +568,17 @@ class EstatisticasController extends ModuleController
                 e.unidade = :unidade AND
                 e.dataChegada >= :dataInicial AND
                 e.dataChegada <= :dataFinal
-            ORDER BY
-                e.dataChegada
-        ");
+        ";
+        if ($atendenteId > 0) {
+            $dql .= " AND e.usuario = :atendente";
+        }
+        $dql .= " ORDER BY e.dataChegada";
+        $query = $this->em()->createQuery($dql);
         $query->setParameter('dataInicial', $dataInicial);
         $query->setParameter('dataFinal', $dataFinal);
+        if ($atendenteId > 0) {
+            $query->setParameter('atendente', $atendenteId);
+        }
         $query->setMaxResults(self::MAX_RESULTS);
         foreach ($unidades as $unidade) {
             $query->setParameter('unidade', $unidade);
@@ -556,10 +591,10 @@ class EstatisticasController extends ModuleController
         return $dados;
     }
 
-    private function tempo_medio_atendentes($dataInicial, $dataFinal)
+    private function tempo_medio_atendentes($dataInicial, $dataFinal, $atendenteId = 0)
     {
         $dados = array();
-        $query = $this->em()->createQuery("
+        $dql = "
             SELECT
                 CONCAT(u.nome, CONCAT(' ', u.sobrenome)) as atendente,
                 COUNT(a) as total,
@@ -574,13 +609,17 @@ class EstatisticasController extends ModuleController
                 a.dataChegada >= :dataInicial AND
                 a.dataChegada <= :dataFinal AND
                 a.dataFim IS NOT NULL
-            GROUP BY
-                u
-            ORDER BY
-                u.nome
-        ");
+        ";
+        if ($atendenteId > 0) {
+            $dql .= " AND a.usuario = :atendente";
+        }
+        $dql .= " GROUP BY u ORDER BY u.nome";
+        $query = $this->em()->createQuery($dql);
         $query->setParameter('dataInicial', $dataInicial);
         $query->setParameter('dataFinal', $dataFinal);
+        if ($atendenteId > 0) {
+            $query->setParameter('atendente', $atendenteId);
+        }
         $query->setMaxResults(self::MAX_RESULTS);
         $rs = $query->getResult();
         foreach ($rs as $r) {
@@ -602,6 +641,63 @@ class EstatisticasController extends ModuleController
                 $d['tempoTotal'] = $r['tempoTotal'];
             }
             $dados[] = $d;
+        }
+
+        return $dados;
+    }
+
+    private function tempo_espera_servico($dataInicial, $dataFinal, $unidadeId = 0)
+    {
+        $unidades = $this->unidadesArray($unidadeId);
+        $dados = array();
+        $dql = "
+            SELECT
+                s.nome as servico,
+                COUNT(a) as total,
+                AVG(a.dataChamada - a.dataChegada) as espera,
+                AVG(a.dataFim - a.dataInicio) as atendimento,
+                AVG(a.dataFim - a.dataChegada) as tempoTotal
+            FROM
+                Novosga\Model\ViewAtendimento a
+                JOIN a.servico s
+            WHERE
+                a.unidade = :unidade AND
+                a.dataChegada >= :dataInicial AND
+                a.dataChegada <= :dataFinal AND
+                a.dataChamada IS NOT NULL AND
+                a.dataFim IS NOT NULL
+            GROUP BY
+                s
+            ORDER BY
+                s.nome
+        ";
+        $query = $this->em()->createQuery($dql);
+        $query->setParameter('dataInicial', $dataInicial);
+        $query->setParameter('dataFinal', $dataFinal);
+        foreach ($unidades as $unidade) {
+            $query->setParameter('unidade', $unidade->getId());
+            $rs = $query->getResult();
+            $servicos = array();
+            foreach ($rs as $r) {
+                $d = array(
+                    'servico' => $r['servico'],
+                    'total' => $r['total'],
+                );
+                try {
+                    $d['espera'] = DateUtil::timeToSec($r['espera']);
+                    $d['atendimento'] = DateUtil::timeToSec($r['atendimento']);
+                    $d['tempoTotal'] = DateUtil::timeToSec($r['tempoTotal']);
+                } catch (\Exception $e) {
+                    $d['espera'] = (int) $r['espera'];
+                    $d['atendimento'] = (int) $r['atendimento'];
+                    $d['tempoTotal'] = (int) $r['tempoTotal'];
+                }
+                $servicos[] = $d;
+            }
+            $dados[$unidade->getId()] = array(
+                'unidade' => $unidade->getNome(),
+                'servicos' => $servicos,
+            );
         }
 
         return $dados;

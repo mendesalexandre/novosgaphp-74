@@ -191,7 +191,8 @@ SGA.Estatisticas = {
                 relatorio: id,
                 unidade: ($('#report-unidade').prop('disabled') ? 0 : $('#report-unidade').val()),
                 inicial: SGA.dateToSql($('#report-dataInicial').val()),
-                'final': SGA.dateToSql($('#report-dataFinal').val())
+                'final': SGA.dateToSql($('#report-dataFinal').val()),
+                atendente: ($('#report-atendente').prop('disabled') ? 0 : ($('#report-atendente').val() || 0))
             };
             var query = $.param(params);
             window.open(SGA.url('relatorio_pdf') + '?' + query, '_blank');
