@@ -3,50 +3,67 @@
     <!-- Barra topo -->
     <div class="barra-topo">
         <span class="nome-empresa" id="nome-empresa-painel">CARTÓRIO DE REGISTRO CIVIL</span>
+        <div class="topo-relogio">
+            <span id="cart-hours">00</span><span class="sep">:</span><span id="cart-min">00</span><span class="sep">:</span><span id="cart-sec">00</span>
+        </div>
     </div>
 
     <div class="corpo">
-        <!-- Coluna esquerda: Senha + Guichê + Serviço + Relógio -->
+        <!-- Coluna esquerda: Cards de informação -->
         <div class="col-esquerda">
-            <div class="bloco-senha">
-                <div class="label-senha">Senha</div>
-                <div class="senha-numero blink">
+            <!-- Card Senha -->
+            <div class="card card-senha">
+                <div class="card-header">Senha</div>
+                <div class="card-body blink">
                     <span>{{ ultima.texto }}</span>
                 </div>
             </div>
 
-            <div class="bloco-guiche">
-                <div class="label-guiche">Guichê</div>
-                <div class="guiche-numero blink">
-                    <span>{{ ultima.numeroLocal }}</span>
+            <!-- Card Guichê -->
+            <div class="card card-guiche">
+                <div class="card-header">Guichê</div>
+                <div class="card-body blink">
+                    <span>{{ ultima.local }} {{ ultima.numeroLocal }}</span>
                 </div>
             </div>
 
-            <div class="bloco-servico">
-                <span>{{ ultima.servico || ultima.mensagem }}</span>
+            <!-- Card Serviço -->
+            <div class="card card-servico">
+                <div class="card-header">Serviço</div>
+                <div class="card-body">
+                    <span>{{ ultima.servico || ultima.mensagem }}</span>
+                </div>
             </div>
 
-            <div class="bloco-relogio" id="relogio-cartorio">
-                <div class="hora">
-                    <span id="cart-hours">00</span>
-                    <span class="sep">:</span>
-                    <span id="cart-min">00</span>
-                    <span class="sep">:</span>
-                    <span id="cart-sec">00</span>
+            <!-- Card Cliente -->
+            <div class="card card-cliente">
+                <div class="card-header">Cliente</div>
+                <div class="card-body">
+                    <span>{{ ultima.nomeCliente || '—' }}</span>
                 </div>
-                <div class="data" id="cart-data"></div>
+            </div>
+
+            <!-- Data -->
+            <div class="bloco-data">
+                <span id="cart-data"></span>
             </div>
         </div>
 
-        <!-- Coluna direita: Mídia + Cliente -->
+        <!-- Coluna direita: Mídia + Histórico -->
         <div class="col-direita">
             <div id="media-container">
                 <div id="media"></div>
             </div>
 
-            <div class="bloco-cliente">
-                <span class="label-cliente">Cliente:</span>
-                <span class="nome-cliente">{{ ultima.nomeCliente }}</span>
+            <!-- Histórico -->
+            <div class="historico-bar">
+                <div class="historico-titulo">Anteriores</div>
+                <div class="historico-lista">
+                    <div class="historico-item {{ senha.styleClass }}" ng-repeat="senha in historico | limitTo: 4">
+                        <span class="hist-senha">{{ senha.texto }}</span>
+                        <span class="hist-local">{{ senha.local }} {{ senha.numeroLocal }}</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
