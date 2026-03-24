@@ -134,7 +134,7 @@
                 case 'video':
                 case 'audio':
                     elem.append(
-                        $('<' + widget.type + '></' + widget.type + '>')
+                        $('<' + widget.type + ' autoplay muted></' + widget.type + '>')
                             .prop('autoplay', true)
                             .prop('muted', true)
                             .on('ended error', function() { slider.nextSlide(); })
@@ -222,6 +222,8 @@
                     case 'audio':
                         if (widget.elem.hasClass('loaded')) {
                             var elem = widget.elem.find(widget.type);
+                            elem.prop('muted', true);
+                            elem[0].muted = true;
                             elem.trigger('play');
                         } else {
                             timeoutId = setTimeout(function() {
