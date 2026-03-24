@@ -156,14 +156,13 @@ body {
     margin-top: 5px;
 }
 
-.btn-login:hover {
-    background: linear-gradient(135deg, #16213e, #0f3460);
-    box-shadow: 0 4px 15px rgba(15,52,96,0.4);
-    transform: translateY(-1px);
-}
-
-.btn-login:active {
-    transform: translateY(0);
+.btn-login:hover,
+.btn-login:active,
+.btn-login:focus {
+    background: linear-gradient(135deg, #0f3460, #16213e);
+    color: #fff;
+    box-shadow: none;
+    transform: none;
 }
 
 /* Alerta de erro */
