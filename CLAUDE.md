@@ -292,6 +292,17 @@ Gerenciadas em **Unidade > aba Avançado**:
 - Botões "Encerrar" e "Erro de triagem" agora ocupam 50/50 da largura
 - Corrigido scroll para o topo causado por `document.body.focus()` no AJAX da fila
 
+### Filtro por Atendente nos Relatórios
+- Select de atendente nos relatórios: Atendimentos concluídos, Atendimentos por status, Tempos médios
+- Queries filtram por `usuario` quando atendente selecionado
+- Nome do atendente exibido no cabeçalho do relatório (HTML e PDF)
+
+### Relatório: Tempo de Espera por Serviço
+- Novo relatório (#9) em `sga.estatisticas`
+- Mostra por serviço: total de atendimentos, TME (espera), TMA (atendimento), tempo total
+- Filtrável por unidade e período
+- Útil para identificar gargalos por tipo de serviço
+
 ### Correções nos Relatórios de Estatísticas
 - Corrigido formato DateInterval nos atendimentos concluídos (`%I/%S` → `%i/%s`)
 - Tratamento de datas nulas no relatório de atendimentos por status
