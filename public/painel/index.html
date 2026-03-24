@@ -57,6 +57,12 @@
             background: rgba(0,0,0,0.9); padding: 15px 20px; display: none; z-index: 100;
         }
         .config-bar.visible { display: block; }
+        .config-bar .url-gerada {
+            margin-top: 10px; padding: 8px 12px; background: #222; border-radius: 4px;
+            font-family: monospace; font-size: 12px; color: #0f0; word-break: break-all;
+            display: none;
+        }
+        .config-bar .url-gerada.visible { display: block; }
     </style>
 </head>
 <body>
@@ -75,13 +81,19 @@
     </div>
 
     <div class="config-bar" id="config-bar">
-        <form class="form-inline" onsubmit="return iniciarPainel()">
+        <form class="form-inline" onsubmit="return salvarConfig()">
             <label style="color:#fff">Unidade:</label>
             <input type="number" id="cfg-unidade" class="form-control" value="1" style="width:80px">
             <label style="color:#fff;margin-left:10px">Servi&ccedil;os (IDs):</label>
             <input type="text" id="cfg-servicos" class="form-control" value="1" style="width:150px">
             <button type="submit" class="btn btn-primary" style="margin-left:10px">Iniciar</button>
+            <button type="button" class="btn btn-info" style="margin-left:5px" onclick="copiarUrl()">Copiar URL</button>
         </form>
+        <div class="url-gerada" id="url-gerada"></div>
+        <p style="color:#888;margin-top:8px;font-size:12px">
+            Pressione <kbd>C</kbd> para abrir/fechar. Use a URL com par&acirc;metros para abrir direto sem configurar:<br>
+            <code style="color:#aaa">/painel/?unidade=1&amp;servicos=1,2,3</code>
+        </p>
     </div>
 
     <script>
@@ -89,6 +101,12 @@
         var historico = [];
         var MAX_HISTORICO = 10;
         var intervalo = null;
+
+        // Ler parâmetros da URL
+        function getParam(nome, fallback) {
+            var params = new URLSearchParams(window.location.search);
+            return params.get(nome) || fallback || '';
+        }
 
         document.addEventListener('keydown', function(e) {
             if (e.key === 'c' || e.key === 'C') {
@@ -132,7 +150,6 @@
                     try {
                         var senhas = JSON.parse(xhr.responseText);
                         if (senhas.length > 0) {
-                            // senhas vem em ordem DESC, processar do mais antigo
                             for (var i = senhas.length - 1; i >= 0; i--) {
                                 exibirSenha(senhas[i]);
                                 if (senhas[i].id > lastId) {
@@ -146,16 +163,53 @@
             xhr.send();
         }
 
-        function iniciarPainel() {
+        function iniciarPainel(unidade, servicos) {
+            if (unidade) document.getElementById('cfg-unidade').value = unidade;
+            if (servicos) document.getElementById('cfg-servicos').value = servicos;
+
             document.getElementById('config-bar').classList.remove('visible');
             if (intervalo) clearInterval(intervalo);
             lastId = 0;
             poll();
             intervalo = setInterval(poll, 2000);
+        }
+
+        function salvarConfig() {
+            iniciarPainel();
             return false;
         }
 
-        document.getElementById('config-bar').classList.add('visible');
+        function gerarUrl() {
+            var unidade = document.getElementById('cfg-unidade').value;
+            var servicos = document.getElementById('cfg-servicos').value;
+            return window.location.origin + window.location.pathname +
+                   '?unidade=' + unidade + '&servicos=' + servicos;
+        }
+
+        function copiarUrl() {
+            var url = gerarUrl();
+            var el = document.getElementById('url-gerada');
+            el.textContent = url;
+            el.classList.add('visible');
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(url);
+            }
+        }
+
+        // Inicialização: verificar URL params → iniciar automaticamente ou mostrar config
+        (function() {
+            var unidade = getParam('unidade');
+            var servicos = getParam('servicos');
+
+            if (unidade && servicos) {
+                // Tem parâmetros na URL: inicia direto sem mostrar config
+                iniciarPainel(unidade, servicos);
+            } else {
+                // Sem parâmetros: mostra barra de config
+                document.getElementById('config-bar').classList.add('visible');
+            }
+        })();
     </script>
 </body>
 </html>
