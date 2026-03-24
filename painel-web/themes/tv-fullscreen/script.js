@@ -148,7 +148,8 @@
                     );
                     break;
                 case 'youtube':
-                    elem.append('<div id="yt-player-' + widget.index + '"></div>');
+                    var ytUrl = 'https://www.youtube.com/embed/' + widget.content + '?autoplay=1&loop=1&mute=1&iv_load_policy=3&modestbranding=1&controls=0&showinfo=0&rel=0&playlist=' + widget.content;
+                    elem.append('<iframe src="' + ytUrl + '" style="width:100%;height:100%;border:none" allow="autoplay; encrypted-media" allowfullscreen></iframe>');
                     elem.addClass('loaded');
                     break;
                 case 'iptv':
