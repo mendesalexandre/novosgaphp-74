@@ -241,15 +241,14 @@
     border-radius: 8px;
     background-color: #f4f6f8;
     border: 1px solid #e8e8e8;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 10px;
     list-style: none;
 }
 
 /* Card da fila */
 #atendimento #fila .fila-card {
-    width: 180px;
     background: #fff;
     border: 1px solid #e0e0e0;
     border-radius: 8px;

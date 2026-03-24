@@ -99,6 +99,10 @@ SGA.Atendimento = {
                     var atendimentos = response.data.atendimentos || [],
                             usuario = response.data.usuario || {};
                     var list = $("#fila ul");
+                    // gerar hash simples para comparar se mudou
+                    var novoHash = atendimentos.map(function(a) { return a.id + ':' + a.espera; }).join(',');
+                    var hashAtual = list.data('hash') || '';
+
                     // habilitando botao chamar
                     if (atendimentos.length > 0) {
                         $('#chamar .chamar').prop('disabled', false);
@@ -108,8 +112,14 @@ SGA.Atendimento = {
                             SGA.Notification.show('Atendimento', 'Novo atendimento na fila');
                         }
                     }
-                    list.text('');
-                    if (atendimentos.length > 0) {
+
+                    // só reconstroi a fila se mudou (evita flash)
+                    var mudou = (novoHash !== hashAtual);
+                    if (mudou) {
+                    list.data('hash', novoHash);
+                    list.html('');
+                    }
+                    if (mudou && atendimentos.length > 0) {
                         document.body.focus();
                         for (var i = 0; i < atendimentos.length; i++) {
                             var atendimento = atendimentos[i];
@@ -120,7 +130,7 @@ SGA.Atendimento = {
                             item += '<div class="fila-card-header" onclick="' + onclick + '">';
                             item += '<span class="fila-senha">' + atendimento.senha + '</span>';
                             if (atendimento.prioridade) {
-                                item += '<span class="fila-badge-prio">' + atendimento.nomePrioridade + '</span>';
+                                item += '<span class="fila-badge-prio">Prioritário</span>';
                             }
                             item += '</div>';
                             item += '<div class="fila-card-body">';
@@ -137,7 +147,7 @@ SGA.Atendimento = {
                             list.append(item);
                         }
                         document.title = "(" + atendimentos.length + ") " + SGA.Atendimento.defaultTitle;
-                    } else {
+                    } else if (mudou) {
                         $('#chamar .chamar').prop('disabled', true);
                         list.append('<li class="empty">' + SGA.Atendimento.filaVazia + '</li>');
                         document.title = SGA.Atendimento.defaultTitle;
