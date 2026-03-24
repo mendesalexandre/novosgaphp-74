@@ -2,37 +2,61 @@
 <html lang="{{ lang }}">
     <head>
         <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Login | Novo SGA</title>
         <link rel="shortcut icon" href="{{ baseUrl() }}/images/favicon.png" />
         <link rel="stylesheet" type="text/css" href="{{ baseUrl() }}/css/bootstrap.min.css?v={{ version }}" />
         <link rel="stylesheet" type="text/css" href="{{ baseUrl() }}/css/login.css?v={{ version }}" />
-        <!--[if lt IE 9]>
-        <script src="{{ baseUrl() }}/js/html5shiv.js"></script>
-        <script src="{{ baseUrl() }}/js/respond.min.js"></script>
-        <![endif]-->
     </head>
     <body>
-        <div class="container">
-            <form id="login-form" action="login" method="post" class="form-signin">
-                <h2 id="logo" class="form-signin-heading">Novo SGA</h2>
-                {% if flash['error'] %}
-                    <div class="alert alert-danger">
-                        {{ flash['error'] }}
+        <div class="login-wrapper">
+            <div class="login-left">
+                <div class="login-brand">
+                    <div class="brand-icon">
+                        <img src="{{ baseUrl() }}/images/novosga-login.png" alt="Novo SGA" onerror="this.style.display='none'">
                     </div>
-                {% endif %}
-                <div id="login">
-                    <input type="text" name="username" class="form-control" placeholder="{% trans %}Nome Usuário{% endtrans %}" autofocus>
-                    <input type="password" name="password" class="form-control" placeholder="{% trans %}Senha{% endtrans %}">
-                    <button class="btn btn-lg btn-primary btn-block" type="submit">{% trans %}Entrar{% endtrans %}</button>
+                    <h1>Novo SGA</h1>
+                    <p>Sistema de Gerenciamento de Atendimento</p>
                 </div>
-            </form>
+            </div>
+            <div class="login-right">
+                <div class="login-card">
+                    <div class="login-header">
+                        <h2>{% trans %}Bem-vindo{% endtrans %}</h2>
+                        <p>{% trans %}Faça login para acessar o sistema{% endtrans %}</p>
+                    </div>
+                    {% if flash['error'] %}
+                        <div class="alert alert-danger">
+                            <span class="glyphicon glyphicon-exclamation-sign"></span>
+                            {{ flash['error'] }}
+                        </div>
+                    {% endif %}
+                    <form id="login-form" action="login" method="post">
+                        <div class="form-group">
+                            <label for="username">{% trans %}Usuário{% endtrans %}</label>
+                            <div class="input-icon">
+                                <span class="icon">&#128100;</span>
+                                <input type="text" id="username" name="username" class="form-control"
+                                       placeholder="{% trans %}Digite seu usuário{% endtrans %}" autofocus required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">{% trans %}Senha{% endtrans %}</label>
+                            <div class="input-icon">
+                                <span class="icon">&#128274;</span>
+                                <input type="password" id="password" name="password" class="form-control"
+                                       placeholder="{% trans %}Digite sua senha{% endtrans %}" required>
+                            </div>
+                        </div>
+                        <button class="btn btn-login" type="submit">{% trans %}Entrar{% endtrans %}</button>
+                    </form>
+                    <div class="login-footer">
+                        <p>Novo SGA v{{ version }}</p>
+                    </div>
+                </div>
+            </div>
         </div>
         <script type="text/javascript" src="js/jquery.js"></script>
         <script type="text/javascript" src="js/script.js"></script>
-        <script type="text/javascript">
-            $(document).ready(function() {
-                $('#login').focus();
-            });
-        </script>
     </body>
 </html>
