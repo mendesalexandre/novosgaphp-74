@@ -398,11 +398,12 @@
             this.update = function(sources, interval) {
                 if (self.index === -1) {
                     // creating
+                    self.sources = sources || [];
+                    self.interval = interval;
+                    if (self.sources.length === 0) return;
                     self.index = 0;
-                    self.sources = sources;
                     self.sources[self.index].items = [];
                     self.sources[self.index].index = 0;
-                    self.interval = interval;
                     self.load();
                 } else {
                     // updating (wait transition)
@@ -536,9 +537,34 @@
 
         var init = function() {
             // Recalcular o slider caso o #media tenha sido re-renderizado
-            slider = $("#media");
-            slider.index = 0;
-            slider.widgets = [];
+            var newSlider = $("#media");
+            if (newSlider.length) {
+                slider = newSlider;
+                slider.index = 0;
+                slider.widgets = [];
+                slider.show = function(index) {
+                    if (slider.widgets && slider.widgets[index]) {
+                        slider.find('.widget').fadeOut(500);
+                        slider.widgets[index].elem.fadeIn(500);
+                        slider.index = index;
+                        checkWidget(slider.index);
+                    }
+                };
+                slider.nextSlide = function() {
+                    if (newConfig !== null) {
+                        createContents(newConfig);
+                        newConfig = null;
+                    } else if (slider.widgets.length > 1) {
+                        slider.index = (slider.index < slider.widgets.length - 1) ? slider.index + 1 : 0;
+                        slider.show(slider.index);
+                    } else {
+                        checkWidget(0);
+                    }
+                };
+                slider.currentWidget = function() {
+                    return slider.widgets[slider.index];
+                };
+            }
 
             // callbacks
             if (!attached) { 
