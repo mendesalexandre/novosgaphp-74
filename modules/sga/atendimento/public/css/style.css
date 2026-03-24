@@ -100,15 +100,15 @@
     border-color: #3498db;
     color: #fff;
     font-size: 15px;
-    padding: 15px;
+    padding: 15px 30px;
     border-radius: 8px;
 }
 
 #atendimento #chamar .chamar span {
-    padding-top: 0;
+    padding-top: 0 !important;
     color: #fff;
     font-size: 16px;
-    background: none;
+    background-image: none !important;
 }
 
 #atendimento #chamar .chamar:disabled {

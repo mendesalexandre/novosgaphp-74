@@ -178,18 +178,26 @@
             ctrl.gotoPage('#tipo-atendimento');
         };
 
+        ctrl.findPreferencial = function(prioridades) {
+            // Busca prioridade com nome "Preferencial", senão usa a primeira
+            for (var i = 0; i < prioridades.length; i++) {
+                if (prioridades[i].nome.toLowerCase() === 'preferencial') {
+                    return prioridades[i].id;
+                }
+            }
+            return prioridades.length > 0 ? prioridades[0].id : null;
+        };
+
         ctrl.tipoPrioridade = function() {
             if (ctrl.interface.simplificada) {
                 if (ctrl.prioridades.length > 0) {
-                    ctrl.distribuiSenha(ctrl.prioridades[0].id);
+                    ctrl.distribuiSenha(ctrl.findPreferencial(ctrl.prioridades));
                 } else {
-                    // busca prioridades agora e emite com a primeira
                     $http({ method: 'GET', url: ctrl.url + '/api/prioridades' }).then(
                         function(response) {
                             ctrl.prioridades = response.data || [];
-                            if (ctrl.prioridades.length > 0) {
-                                ctrl.distribuiSenha(ctrl.prioridades[0].id);
-                            }
+                            var id = ctrl.findPreferencial(ctrl.prioridades);
+                            if (id) ctrl.distribuiSenha(id);
                         }
                     );
                 }
