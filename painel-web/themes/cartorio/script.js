@@ -52,6 +52,10 @@
 
         var loadConfig = function(callback) {
             var url = PainelWeb.Storage.get('url');
+            if (!url || url === '') {
+                // fallback: usar a URL base do painel-web
+                url = window.location.protocol + '//' + window.location.host;
+            }
             if (url && url !== '') {
                 $.ajax({
                     url: url + '/api/extra/vetor.panel',
