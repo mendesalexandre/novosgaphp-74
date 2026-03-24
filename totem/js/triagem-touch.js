@@ -179,8 +179,20 @@
         };
 
         ctrl.tipoPrioridade = function() {
-            if (ctrl.interface.simplificada && ctrl.prioridades.length > 0) {
-                ctrl.distribuiSenha(ctrl.prioridades[0].id);
+            if (ctrl.interface.simplificada) {
+                if (ctrl.prioridades.length > 0) {
+                    ctrl.distribuiSenha(ctrl.prioridades[0].id);
+                } else {
+                    // busca prioridades agora e emite com a primeira
+                    $http({ method: 'GET', url: ctrl.url + '/api/prioridades' }).then(
+                        function(response) {
+                            ctrl.prioridades = response.data || [];
+                            if (ctrl.prioridades.length > 0) {
+                                ctrl.distribuiSenha(ctrl.prioridades[0].id);
+                            }
+                        }
+                    );
+                }
             } else {
                 ctrl.gotoPage('#prioridades');
             }
