@@ -10,6 +10,53 @@ Sistema de gerenciamento de fila de atendimento (senhas) open source, baseado no
 - **Banco de Dados**: PostgreSQL (via Doctrine DBAL com driver `pdo_pgsql`)
 - **Autenticação API**: OAuth2 (bshaffer/oauth2-server-php)
 - **PHP**: >=7.1 (testado em 8.4)
+- **Servidor**: nginx + PHP-FPM (ou PHP built-in para desenvolvimento)
+
+---
+
+## Instalação Rápida
+
+```bash
+# 1. Clonar o repositório
+git clone git@github.com:mendesalexandre/novosgaphp-74.git novosga
+cd novosga
+
+# 2. Instalar dependências
+composer install --no-scripts
+
+# 3. Criar banco PostgreSQL
+sudo -u postgres psql -c "CREATE USER novosga WITH PASSWORD 'novosga';"
+sudo -u postgres psql -c "CREATE DATABASE novosga OWNER novosga ENCODING 'UTF8';"
+
+# 4. Rodar instalação automatizada
+php bin/install.php
+
+# 5. Subir o servidor
+php -S 0.0.0.0:8888 -t public
+```
+
+Acesso: http://localhost:8888 — Login: `admin` / `123456`
+
+### Instalador Automatizado (bin/install.php)
+
+Faz tudo em um único comando:
+1. Gera `config/database.php` e `config/app.php`
+2. Cria schema PostgreSQL + expande sigla para 3 caracteres
+3. Instala todos os módulos (sga.* + vetor.panel)
+4. Insere dados iniciais (prioridades, grupo, cargo, local, unidade, serviço)
+5. Cria usuário admin (admin/123456 por padrão)
+6. Configura cliente OAuth2 (novosga-client/novosga-secret)
+
+```bash
+# Instalação padrão
+php bin/install.php
+
+# Personalizada
+php bin/install.php --db-host=10.0.0.1 --db-name=meubanco \
+  --admin-user=joao --admin-pass=minhasenha --sigla=ATD --servico="Atendimento Geral"
+```
+
+O script é **idempotente** — pode rodar várias vezes sem duplicar dados.
 
 ---
 
@@ -17,135 +64,82 @@ Sistema de gerenciamento de fila de atendimento (senhas) open source, baseado no
 
 ```
 novosga/
+├── bin/
+│   ├── install.php            # Instalação automatizada
+│   ├── novosga.php            # CLI do NovoSGA (reset, unidades, módulos)
+│   └── doctrine               # Doctrine CLI
 ├── bootstrap.php              # Constantes e autoloader
 ├── composer.json
 ├── cli-config.php             # Doctrine CLI helper
 ├── config/
-│   ├── database.php           # Conexão PostgreSQL (driver, host, porta, dbname, user, password)
-│   └── app.php                # Configuração do app (hooks, queue, auth)
-├── public/                    # Web root (entry point do servidor)
+│   ├── database.php           # Conexão PostgreSQL
+│   ├── app.php                # Configuração do app (hooks, queue, auth)
+│   └── api.php                # Rotas extras da API (vetor.panel)
+├── public/                    # Web root (document root do nginx)
 │   ├── index.php              # Rotas Slim (login, home, modules)
 │   ├── api/index.php          # Rotas API REST (OAuth2, painel, atendimentos)
-│   └── painel/index.html      # Painel TV de senhas (polling)
+│   ├── painel/index.html      # Painel TV simples (polling via URL params)
+│   ├── js/sweetalert2.min.js  # SweetAlert2 local (sem CDN)
+│   └── css/login.css          # CSS do login moderno
 ├── src/Novosga/               # Core do sistema
 │   ├── App.php                # Extends Slim\Slim
 │   ├── Api/                   # ApiV1 (endpoints REST), OAuth2Server
 │   ├── Auth/                  # Autenticação (Database, LDAP)
-│   ├── Config/                # DatabaseConfig, AppConfig (arquivos PHP em config/)
+│   ├── Config/                # DatabaseConfig, AppConfig, ApiConfig
 │   ├── Controller/            # Controllers base (Home, Login, Ticket, Module)
 │   ├── Model/                 # Entidades Doctrine (Atendimento, PainelSenha, etc)
 │   ├── Service/               # AtendimentoService, FilaService, UnidadeService, etc
 │   ├── Slim/                  # Middlewares (Auth, Install)
 │   ├── Twig/                  # Extensões Twig customizadas
 │   └── Util/                  # Utilitários (Arrays, DateUtil, I18n, etc)
-├── modules/sga/               # Módulos do sistema
-│   ├── atendimento/           # Chamar, iniciar, encerrar, codificar senhas
-│   ├── monitor/               # Visualizar fila, transferir, cancelar, reativar
-│   ├── triagem/               # Emissão de senhas
-│   ├── unidade/               # Configuração da unidade (serviços, impressão, avançado)
-│   ├── admin/                 # Painel administrativo
-│   ├── estatisticas/          # Relatórios e gráficos
-│   ├── cargos/                # Gerenciamento de cargos
-│   ├── grupos/                # Gerenciamento de grupos
-│   ├── locais/                # Locais de atendimento
-│   ├── prioridades/           # Tipos de prioridade
-│   ├── servicos/              # Serviamento de serviços globais
-│   ├── unidades/              # Gerenciamento de unidades
-│   ├── usuarios/              # Gerenciamento de usuários
-│   └── modulos/               # Instalação de módulos
-├── templates/                 # Templates globais (main, login, home, install, etc)
+├── modules/
+│   ├── sga/                   # Módulos do sistema
+│   │   ├── atendimento/       # Chamar, iniciar, encerrar, codificar, cronômetro
+│   │   ├── monitor/           # Visualizar fila, transferir, cancelar, reativar
+│   │   ├── triagem/           # Emissão de senhas (normal/prioridade)
+│   │   ├── unidade/           # Config da unidade (serviços, impressão, avançado)
+│   │   ├── admin/             # Painel administrativo
+│   │   ├── estatisticas/      # Relatórios e gráficos
+│   │   └── (cargos, grupos, locais, prioridades, servicos, unidades, usuarios, modulos)
+│   └── vetor/
+│       └── panel/             # Vetor Panel (gerenciador de mídia do painel)
+├── painel-web/                # Painel Web completo (AngularJS + temas)
+│   ├── index.html             # App principal
+│   ├── js/speech.js           # Vocalização via Web Speech API
+│   └── themes/                # Temas disponíveis
+│       ├── cartorio/          # Tema para cartórios (estilo ARPEN)
+│       ├── hospital/          # Tema hospitalar (protocolo Manchester)
+│       ├── moderno-escuro/    # Tema moderno fundo escuro
+│       ├── moderno-claro/     # Tema moderno fundo claro
+│       ├── tv-fullscreen/     # Vídeo em tela cheia com overlay
+│       ├── vetor2/            # Tema clássico 2 colunas
+│       ├── default/           # Tema básico original
+│       └── marquee/           # Tema com texto rolante
+├── totem/                     # Totem de Triagem Touch (triage-app v1.4.0)
+│   ├── index.html             # App de emissão de senhas por toque
+│   ├── js/triagem-touch.js    # Lógica do totem (OAuth2, impressão, triagem simplificada)
+│   └── layouts/default.html   # Layout padrão do totem
+├── templates/                 # Templates globais Twig
+│   ├── main.html.twig         # Template base (inclui SweetAlert2)
+│   ├── login.html.twig        # Login moderno split-screen
+│   └── (home, module, profile, print, install, error)
 └── var/
     ├── cache/                 # Cache do Twig (limpar ao alterar templates)
-    └── log/                   # Logs da aplicação
+    └── log/                   # Logs
 ```
 
 ---
 
-## Como Subir o Projeto
-
-### Pré-requisitos
-
-- PHP >= 7.1 (testado com 8.4)
-- PostgreSQL
-- Composer
-- Extensões PHP: pdo, pdo_pgsql, json, gettext, mbstring
-
-### Instalação
-
-```bash
-# 1. Instalar dependências
-composer install --no-scripts
-
-# 2. Criar banco de dados PostgreSQL
-sudo -u postgres psql -c "CREATE USER novosga WITH PASSWORD 'novosga';"
-sudo -u postgres psql -c "CREATE DATABASE novosga OWNER novosga ENCODING 'UTF8';"
-
-# 3. Criar schema (usar o script SQL nativo, NÃO o Doctrine schema:create)
-PGPASSWORD=novosga psql -h 127.0.0.1 -U novosga -d novosga -f src/Novosga/Install/sql/create/pgsql.sql
-
-# 4. Instalar módulos
-php -r "
-require 'bootstrap.php';
-\$db = \Novosga\Config\DatabaseConfig::getInstance();
-\$em = \$db->createEntityManager();
-\$service = new \Novosga\Service\ModuloService(\$em);
-foreach (glob(MODULES_PATH.'/sga/*', GLOB_ONLYDIR) as \$dir) {
-    \$service->install(\$dir, 'sga.' . basename(\$dir), 1);
-}
-"
-
-# 5. Inserir dados iniciais (prioridades, grupo, cargo, unidade, serviço, admin)
-PGPASSWORD=novosga psql -h 127.0.0.1 -U novosga -d novosga << 'EOSQL'
-INSERT INTO prioridades (nome, descricao, peso, status) VALUES ('Normal', 'Atendimento normal', 0, 1);
-INSERT INTO prioridades (nome, descricao, peso, status) VALUES ('Idoso', 'Prioritário idosos', 1, 1);
-INSERT INTO prioridades (nome, descricao, peso, status) VALUES ('Gestante', 'Prioritário gestantes', 1, 1);
-INSERT INTO grupos (nome, descricao, esquerda, direita, nivel) VALUES ('Raiz', 'Grupo raiz', 1, 4, 0);
-INSERT INTO cargos (nome, descricao, esquerda, direita, nivel) VALUES ('Administrador', 'Administrador do sistema', 1, 2, 0);
-INSERT INTO cargos_mod_perm (cargo_id, modulo_id, permissao) SELECT (SELECT id FROM cargos LIMIT 1), id, 3 FROM modulos;
-INSERT INTO unidades (grupo_id, codigo, nome, status, stat_imp, msg_imp) VALUES ((SELECT id FROM grupos LIMIT 1), '1', 'Unidade Padrão', 1, 0, '');
-INSERT INTO servicos (descricao, nome, status, peso) VALUES ('Atendimento geral', 'Atendimento', 1, 1);
-INSERT INTO uni_serv (unidade_id, servico_id, local_id, sigla, status, peso) VALUES (
-  (SELECT id FROM unidades LIMIT 1), (SELECT id FROM servicos LIMIT 1),
-  (SELECT id FROM locais LIMIT 1), 'AAA', 1, 1);
-INSERT INTO config (chave, valor, tipo) VALUES ('version', '1.5.2', 1);
-INSERT INTO usuarios (login, nome, sobrenome, senha, ult_acesso, status, session_id)
-  VALUES ('admin', 'Admin', 'Istrador', 'e10adc3949ba59abbe56e057f20f883e', NULL, 1, '');
-INSERT INTO usu_grup_cargo (usuario_id, grupo_id, cargo_id)
-  SELECT id, (SELECT id FROM grupos LIMIT 1), (SELECT id FROM cargos LIMIT 1) FROM usuarios;
-INSERT INTO usu_serv (unidade_id, servico_id, usuario_id)
-  SELECT (SELECT id FROM unidades LIMIT 1), (SELECT id FROM servicos LIMIT 1), id FROM usuarios;
-INSERT INTO oauth_clients (client_id, client_secret, redirect_uri, grant_types)
-  VALUES ('novosga-client', 'novosga-secret', '', 'password refresh_token');
-EOSQL
-
-# 6. Subir o servidor
-php -S 0.0.0.0:8888 -t public
-```
-
-### Acesso
+## URLs do Sistema
 
 | URL | Descrição |
 |-----|-----------|
-| http://localhost:8888 | Aplicação (login: `admin` / `123456`) |
-| http://localhost:8888/painel/ | Painel TV (pressione `C` para configurar) |
-| http://localhost:8888/api/ | API REST (OAuth2) |
-
-### Configuração do Banco
-
-Arquivo `config/database.php`:
-
-```php
-<?php
-return array(
-    'driver'   => 'pdo_pgsql',
-    'host'     => '127.0.0.1',
-    'port'     => 5432,
-    'dbname'   => 'novosga',
-    'user'     => 'novosga',
-    'password' => 'novosga',
-    'charset'  => 'UTF8',
-);
-```
+| http://novosga.local | Aplicação principal (login: admin/123456) |
+| http://novosga.local/painel/ | Painel TV simples (`?unidade=1&servicos=1`) |
+| http://novosga.local/painel-web/ | Painel Web com temas e vocalização |
+| http://novosga.local/totem/ | Totem de triagem touch |
+| http://novosga.local/api/ | API REST (OAuth2) |
+| http://novosga.local/modules/vetor.panel | Gerenciador de mídia do painel |
 
 ---
 
@@ -169,165 +163,193 @@ Outros status: NAO_COMPARECEU (5), SENHA_CANCELADA (6), ERRO_TRIAGEM (7)
 
 ---
 
-## Correções de Compatibilidade (PHP 8.x)
+## Configurações por Unidade (tabela uni_meta)
 
-### Vendor patches (necessários após `composer install`)
+Gerenciadas em **Unidade > aba Avançado**:
 
-Estes arquivos do vendor precisam de correção manual para rodar em PHP 8.x:
-
-**`vendor/slim/slim/Slim/Http/Util.php` linha 60:**
-```php
-// DE:
-$strip = is_null($overrideStripSlashes) ? get_magic_quotes_gpc() : $overrideStripSlashes;
-// PARA:
-$strip = is_null($overrideStripSlashes) ? false : $overrideStripSlashes;
-```
-
-**`vendor/slim/views/Twig.php`:**
-- Remover bloco `Twig_Autoloader` (linhas 116-120)
-- Trocar `\Twig_Loader_Filesystem` → `\Twig\Loader\FilesystemLoader`
-- Trocar `\Twig_Environment` → `\Twig\Environment`
-- Trocar `$env->loadTemplate()` → `$env->load()`
-
-**`vendor/slim/views/TwigExtension.php`:**
-- Trocar `\Twig_Extension` → `\Twig\Extension\AbstractExtension`
-- Trocar `\Twig_SimpleFunction` → `\Twig\TwigFunction`
-- Remover método `getName()`
-
-### Correções no código-fonte
-
-| Arquivo | Correção |
-|---------|----------|
-| `src/Novosga/Twig/Extensions.php` | `\Twig_Extension` → `\Twig\Extension\AbstractExtension` |
-| `src/Novosga/Twig/SecFormat.php` | `\Twig_SimpleFilter` → `\Twig\TwigFilter`, `\Twig_Environment` → `\Twig\Environment` |
-| `src/Novosga/Twig/ResourcesFunction.php` | `\Twig_SimpleFunction` → `\Twig\TwigFunction`, `\Twig_Environment` → `\Twig\Environment` |
-| `src/Novosga/App.php` | `\Twig_Extensions_Extension_I18n` → `\Twig\Extensions\I18nExtension`, `\Twig_Extension_Debug` → `\Twig\Extension\DebugExtension` |
-| `src/Novosga/Model/AbstractAtendimento.php` | `new \DateInterval()` → `new \DateInterval('PT0S')` |
+| Chave | Tipo | Default | Descrição |
+|-------|------|---------|-----------|
+| `permitir_chamar_senha_direta` | 0/1 | 0 | Botão "Chamar" na fila para chamar senha específica |
+| `exigir_codificacao` | 0/1 | 1 | Exige seleção de serviços ao encerrar atendimento |
+| `triagem_simplificada` | 0/1 | 0 | Botão Prioridade emite direto sem escolher tipo |
 
 ---
 
 ## Melhorias Implementadas
 
-### 1. Chamar Senha Específica (Etapa 5)
+### Compatibilidade PHP 8.x
+- Vendor patches: `get_magic_quotes_gpc()`, Twig 2.x namespaces, `DateInterval`
+- Symfony Console travado em ^5.4
 
-Permite ao atendente chamar qualquer senha da fila, não apenas a próxima.
-
-- **Configuração**: Unidade > Avançado > "Permitir chamar senha específica da fila"
-- **Armazenamento**: tabela `uni_meta`, chave `permitir_chamar_senha_direta`
-- **Endpoint**: `POST /modules/sga.atendimento/chamar_especifico/{id}`
-- **Controller**: `AtendimentoController::chamar_especifico()`
-- **UI**: botão "Chamar" ao lado de cada senha na fila (com title "Chamar esta senha: AAA0001")
-
-### 2. Rechamar Senha (Etapa 6)
-
-Permite rechamar qualquer senha chamada nas últimas 2 horas, republicando no painel.
-
-- **Endpoint**: `POST /modules/sga.atendimento/rechamar/{id}`
-- **Controller**: `AtendimentoController::rechamar()`
-- **Validação**: verifica se `dataChamada` está dentro das últimas 2 horas
-
-### 3. API REST para Chamar Senha (Etapa 7)
-
-Endpoint para sistemas externos chamarem uma senha via API OAuth2.
-
-- **Endpoint**: `POST /api/atendimentos/{id}/chamar`
-- **Autenticação**: Bearer token OAuth2
-- **Parâmetros**: `local` (número do guichê)
-- **Resposta**: `{ "success": true, "senha": "AAA0001", "guiche": "01", "chamadaEm": "2026-03-24T10:00:00" }`
-- **Método**: `ApiV1::chamarSenha()`
-
-### 4. Campo Nome do Cliente (Etapa 8)
-
-Campo opcional para informar o nome do cliente durante o atendimento.
-
-- **Campo já existia**: `AbstractAtendimento::$nomeCliente` (coluna `nm_cli`)
-- **Novo endpoint**: `POST /modules/sga.atendimento/salvar_nome_cliente`
-- **UI**: campo de texto + botão "Salvar" na tela de atendimento (status 2)
-
-### 5. Painel TV com Polling (Etapa 9)
-
-Painel de senhas para TV/monitor com atualização automática.
-
-- **Página**: `public/painel/index.html`
-- **Endpoint**: `GET /api/painel/{unidade}/latest?servicos=1,2,3&lastId=0`
-- **Atualização**: polling a cada 2 segundos (compatível com PHP built-in server)
-- **Configuração**: pressionar tecla `C` para definir unidade e serviços
-- **Interface**: senha atual em destaque + histórico de chamadas anteriores
-
-### 6. Codificação Opcional (Etapa extra)
-
-Permite desabilitar a etapa de codificação de serviços ao encerrar o atendimento.
-
-- **Configuração**: Unidade > Avançado > "Exigir codificação do serviço ao encerrar"
-- **Armazenamento**: tabela `uni_meta`, chave `exigir_codificacao`
-- **Comportamento**: quando desativado, `encerrar` muda direto para status 8 (ENCERRADO_CODIFICADO) com `dataFim`, pulando a tela de seleção de serviços
-
-### 7. Cronômetro de Atendimento (Etapa extra)
-
-Timer visual no canto superior direito da tela de atendimento.
-
-- **Vermelho** "Espera": tempo desde a chegada do cliente (status 2)
-- **Verde** "Atendimento": tempo desde o início do atendimento (status 3)
-- **Amarelo** "Codificação": tempo durante a seleção de serviços (status 4)
-- **Persistência**: ao recarregar a página, o cronômetro retoma do tempo correto usando `tempoAtendimento` (segundos calculados pelo servidor)
-- **Campo JSON**: `tempoAtendimento` adicionado no `AbstractAtendimento::jsonSerialize()`
-
-### 8. Correção de Senhas Duplicadas (Etapa extra)
-
-Reescrita da transação de geração de senhas para eliminar race conditions.
-
-**Problema original:**
-- Número da senha calculado fora da transação
-- `SELECT` do último número por serviço sem lock
-- `commit()` antes de `flush()` (invertido)
-- Retry por `OptimisticLockException` com lock pessimista (contraditório)
-
-**Solução:**
-- `SELECT FOR UPDATE` nativo no contador da unidade
-- Cálculo do `numeroSenha` e `numeroSenhaServico` dentro da transação
+### Geração de Senhas (anti-duplicata)
+- Transação com `SELECT FOR UPDATE` no contador da unidade
+- Cálculo de `numeroSenha` e `numeroSenhaServico` dentro da transação
 - `flush()` antes de `commit()`
-- `em->clear()` após rollback
 
-### 9. Sigla de 3 Caracteres (Etapa extra)
+### Sigla de 3 Caracteres
+- Colunas expandidas de `varchar(1)` para `varchar(3)`
+- Senha formatada como `AAA0001` (sigla 3 chars + número 4 dígitos)
 
-Expansão da sigla da senha de 1 para 3 caracteres (ex: `AAA0001`).
+### Chamar Senha Específica
+- Endpoint `POST /modules/sga.atendimento/chamar_especifico/{id}`
+- Botão "Chamar" com title "Chamar esta senha: AAA0001"
+- Configurável por unidade
 
-**Alterações no banco:**
-```sql
-ALTER TABLE uni_serv ALTER COLUMN sigla TYPE varchar(3);
--- Para atendimentos e historico: dropar views, alterar, recriar views
--- (ver script na seção de instalação)
-ALTER TABLE painel_senha ALTER COLUMN sig_senha TYPE varchar(3);
-```
+### Rechamar Senha
+- Endpoint `POST /modules/sga.atendimento/rechamar/{id}`
+- Rechama senhas das últimas 2 horas
 
-**Alterações no código:**
-- `AbstractAtendimento`: annotation `length=1` → `length=3`
-- `ServicoUnidade`: annotation `length=1` → `length=3`
-- `PainelSenha`: annotation `length=1` → `length=3`
-- `Senha::setSigla()`: aceita 1 a 3 caracteres
-- `Senha::LENGTH`: 3 → 4 (dígitos do número)
-- View da unidade: `maxlength="3"`, CSS com fonte maior
+### API REST
+- `POST /api/atendimentos/{id}/chamar` — chamar senha via API
+- `GET /api/painel/{unidade}/latest` — polling do painel TV
+- `GET /api/extra/vetor.panel` — config de mídia do painel
+- `GET /api/extra/vetor.panel/feed?url=...` — proxy RSS
+
+### Campo Nome do Cliente
+- Endpoint `POST /modules/sga.atendimento/salvar_nome_cliente`
+- Campo na tela de atendimento (status 2)
+
+### Codificação Opcional
+- Quando desativada, encerrar finaliza direto (status 8)
+
+### Triagem Simplificada
+- Botão Prioridade emite direto sem escolher tipo (Idoso, Gestante, etc.)
+- Funciona no módulo de triagem e no totem
+
+### Cronômetro de Atendimento
+- Timer visual no canto superior direito
+- Vermelho (espera), Verde (atendimento), Amarelo (codificação)
+- Persiste ao recarregar via `tempoAtendimento` do servidor
+
+### Login Moderno
+- Layout split-screen: branding à esquerda, formulário à direita
+- Campos com ícones Bootstrap, botão com gradiente
+- Responsivo
 
 ---
 
-## Configurações por Unidade (tabela uni_meta)
+## Vetor Panel (Gerenciador de Mídia)
 
-| Chave | Tipo | Default | Descrição |
-|-------|------|---------|-----------|
-| `permitir_chamar_senha_direta` | `0`/`1` | `0` | Habilita botão "Chamar" na fila |
-| `exigir_codificacao` | `0`/`1` | `1` | Exige seleção de serviços ao encerrar |
+Módulo admin em http://novosga.local/modules/vetor.panel
 
-Gerenciadas em: **Unidade > aba Avançado**
+### Widgets de Mídia (aba Widgets)
+Exibidos na área principal do painel (slideshow):
+
+| Tipo | Descrição |
+|------|-----------|
+| Vídeo | URL ou arquivo local (MP4, WebM) — autoplay muted |
+| YouTube | ID do vídeo — embed com `mute=1&autoplay=1&loop=1` |
+| IPTV | Stream ao vivo (m3u8, ts) |
+| Imagem | URL ou arquivo local (JPG, PNG, GIF) |
+| HTML | Conteúdo HTML livre |
+| Comunicado | Texto com cor e tamanho configuráveis |
+| Clima | OpenWeatherMap (cidade + API key) |
+
+### Notícias RSS (aba Rodapé / Notícias)
+- Feeds RSS/Atom exibidos no ticker do rodapé
+- Proxy via `/api/extra/vetor.panel/feed` (evita CORS)
+- Feed padrão: G1 (`http://g1.globo.com/dynamo/rss2.xml`)
+
+### Upload de Arquivos (aba Arquivos)
+- Upload de vídeos e imagens (até 200MB)
+- Arquivos servidos via nginx em `/modules/vetor.panel/resources/uploads/`
+
+### Configuração salva em `config/vetor-panel.json`
+
+---
+
+## Temas do Painel Web
+
+Configurar em: Painel Web > Configuração > General > Tema
+
+| Tema | Nome | Descrição |
+|------|------|-----------|
+| `cartorio` | Cartório | Estilo ARPEN: senha/guichê à esquerda (azul), vídeo à direita, cliente amarelo, relógio com segundos |
+| `hospital` | Hospital | Gov-CE/Albert Sabin: protocolo Manchester (cores por gravidade), relógio próprio |
+| `moderno-escuro` | Moderno Escuro | Fundo escuro, senha vermelha, relógio piscante |
+| `moderno-claro` | Moderno Claro | Fundo branco, azul corporativo |
+| `tv-fullscreen` | TV Fullscreen | Vídeo em tela cheia com overlay transparente |
+| `vetor2` | Vetor 2 | Layout clássico 2 colunas |
+| `default` | Default | Tema básico original |
+| `marquee` | Marquee | Texto rolante |
+
+Todos os temas suportam: widgets do Vetor Panel, vocalização via Web Speech API, RSS no rodapé.
+
+---
+
+## Vocalização (Web Speech API)
+
+O painel-web usa a Web Speech API nativa do navegador para vocalizar senhas.
+
+Configurar em: Painel Web > Configuração > Som
+
+| Opção | Descrição |
+|-------|-----------|
+| Vocalizar ativo | Habilita/desabilita voz |
+| Voz do navegador | Web Speech API (natural, sem arquivos) |
+| Arquivos MP3 | Fallback com arquivos pré-gravados |
+| Modo extenso | "Senha A A A cento e vinte e três, guichê um" |
+| Modo soletrado | "Senha A A A zero um dois três, guichê um" |
+
+Implementado em `painel-web/js/speech.js` (baseado no `useSpeech.js` do projeto Senha).
+
+---
+
+## Totem de Triagem
+
+App touch para emissão de senhas em terminais. Acesso: http://novosga.local/totem/
+
+### Configuração
+- **URL**: `http://novosga.local`
+- **Unidade**: selecionar
+- **Acesso**: `admin` / `123456` / Client ID: `novosga-client` / Client Secret: `novosga-secret`
+- **Serviços**: marcar os desejados
+- **Triagem simplificada**: Convencional / Preferencial direto (sem escolher tipo)
+
+---
+
+## Painel TV Simples
+
+Página standalone sem dependências. Acesso: http://novosga.local/painel/?unidade=1&servicos=1
+
+- Config via URL params (pode salvar nos favoritos/kiosk)
+- Pressionar `C` para abrir configuração manual
+- Botão "Copiar URL" gera link permanente
+
+---
+
+## Nginx (vhost)
+
+Arquivo: `/etc/nginx/sites-enabled/novosga.conf`
+
+```nginx
+server {
+    listen 80;
+    server_name novosga.local;
+    root /caminho/para/novosga/public;
+    index index.php index.html;
+    client_max_body_size 200M;
+
+    location ^~ /totem/ { alias /caminho/para/novosga/totem/; index index.html; }
+    location ^~ /painel-web/ { alias /caminho/para/novosga/painel-web/; index index.html; }
+    location ^~ /modules/vetor.panel/resources/uploads/ { alias /caminho/para/novosga/modules/vetor/panel/public/uploads/; }
+    location ^~ /api/ { try_files $uri $uri/ /api/index.php$is_args$args; location ~ \.php$ { fastcgi_pass php-fpm; fastcgi_index index.php; fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; include fastcgi_params; } }
+    location / { try_files $uri $uri/ /index.php$is_args$args; }
+    location ~ \.php$ { fastcgi_pass php-fpm; fastcgi_index index.php; fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; include fastcgi_params; }
+    location ~ /\. { deny all; }
+}
+```
+
+Requer: `/etc/hosts` → `127.0.0.1 novosga.local`
 
 ---
 
 ## API REST
 
-### Autenticação
+### Autenticação OAuth2
 
 ```bash
-# Obter token
-curl -X POST http://localhost:8888/api/token \
+curl -X POST http://novosga.local/api/token \
   -d "grant_type=password&username=admin&password=123456&client_id=novosga-client&client_secret=novosga-secret"
 ```
 
@@ -335,6 +357,7 @@ curl -X POST http://localhost:8888/api/token \
 
 | Método | Rota | Auth | Descrição |
 |--------|------|------|-----------|
+| POST | `/api/token` | Não | Obter token OAuth2 |
 | GET | `/api/unidades` | Não | Listar unidades |
 | GET | `/api/servicos(/:unidade)` | Não | Listar serviços |
 | GET | `/api/prioridades` | Não | Listar prioridades |
@@ -344,15 +367,31 @@ curl -X POST http://localhost:8888/api/token \
 | POST | `/api/atendimentos/:id/chamar` | Bearer | Chamar senha específica |
 | GET | `/api/atendimento/:id` | Bearer | Visualizar atendimento |
 | GET | `/api/fila/usuario/:unidade/:usuario` | Não | Fila do usuário |
-| POST | `/api/token` | Não | Obter token OAuth2 |
+| GET | `/api/extra/vetor.panel` | Não | Config de mídia do painel |
+| GET | `/api/extra/vetor.panel/feed?url=...` | Não | Proxy RSS |
+
+---
+
+## Correções de Compatibilidade (PHP 8.x)
+
+### Vendor patches (reaplicar após `composer install`)
+
+**`vendor/slim/slim/Slim/Http/Util.php` linha 60:**
+```php
+$strip = is_null($overrideStripSlashes) ? false : $overrideStripSlashes;
+```
+
+**`vendor/slim/views/Twig.php`:** remover Twig_Autoloader, usar `\Twig\Loader\FilesystemLoader`, `\Twig\Environment`, `$env->load()`
+
+**`vendor/slim/views/TwigExtension.php`:** trocar `\Twig_Extension` → `\Twig\Extension\AbstractExtension`, `\Twig_SimpleFunction` → `\Twig\TwigFunction`
 
 ---
 
 ## Observações Importantes
 
-- **Limpar cache**: ao alterar templates Twig, executar `rm -rf var/cache/*`
-- **Vendor patches**: após `composer install`, reaplicar os patches em `vendor/slim/`
+- **Limpar cache Twig**: `sudo rm -rf var/cache/*` (ou com permissão do PHP-FPM)
+- **Vendor patches**: reaplicar após `composer install`
 - **Senha admin**: MD5 de `123456` = `e10adc3949ba59abbe56e057f20f883e`
-- **Schema do banco**: usar o script SQL nativo (`src/Novosga/Install/sql/create/pgsql.sql`), não o `doctrine:schema:create` (este não cria sequences/serial corretamente)
-- **PHP built-in server**: single-threaded, não usar SSE/long-polling (usar polling)
-- **Idioma do código**: variáveis e métodos em português
+- **Schema do banco**: usar `bin/install.php` ou o script SQL nativo (`src/Novosga/Install/sql/create/pgsql.sql`)
+- **SweetAlert2**: incluído localmente em `public/js/sweetalert2.min.js` (funciona offline)
+- **Permissões**: `var/cache/` e `config/` precisam de escrita pelo PHP-FPM, `modules/vetor/panel/public/uploads/` para uploads
