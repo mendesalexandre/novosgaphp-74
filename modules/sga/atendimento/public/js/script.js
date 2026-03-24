@@ -61,7 +61,7 @@ SGA.Atendimento = {
                             var title = atendimento.servico + ' (' + atendimento.espera + ')';
                             var item = '<li><a class="' + cssClass + '" href="javascript:void(0)" onclick="' + onclick + '" title="' + title + '">' + atendimento.senha + '</a>';
                             if (SGA.Atendimento.permitirChamarDireta) {
-                                item += ' <button class="btn btn-xs btn-primary btn-chamar-direto" onclick="SGA.Atendimento.chamarEspecifico(' + atendimento.id + ', this)" title="Chamar esta senha">Chamar</button>';
+                                item += ' <button class="btn btn-xs btn-primary btn-chamar-direto" onclick="SGA.Atendimento.chamarEspecifico(' + atendimento.id + ', this)" title="Chamar esta senha: ' + atendimento.senha + '">Chamar</button>';
                             }
                             item += '</li>';
                             list.append(item);
