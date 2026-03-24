@@ -94,26 +94,14 @@
     padding-top: 15px;
 }
 
-/* Botão chamar próximo */
-#atendimento #chamar .chamar {
-    background: #3498db;
-    border-color: #3498db;
-    color: #fff;
-    font-size: 15px;
-    padding: 15px 30px;
-    border-radius: 8px;
+/* Botões de controle - hover */
+#atendimento #controls .btn-control:hover {
+    background: #f8f8f8;
+    color: #333;
 }
 
-#atendimento #chamar .chamar span {
-    padding-top: 0 !important;
-    color: #fff;
-    font-size: 16px;
-    background-image: none !important;
-}
-
-#atendimento #chamar .chamar:disabled {
-    background: #bdc3c7;
-    border-color: #bdc3c7;
+#atendimento #controls .btn-control:hover span {
+    color: #333;
 }
 
 /* ===== Info do atendimento ===== */
