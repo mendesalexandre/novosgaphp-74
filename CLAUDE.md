@@ -155,7 +155,7 @@ novosga/
 │   │   └── (cargos, grupos, locais, prioridades, servicos, unidades, usuarios, modulos)
 │   └── vetor/
 │       └── panel/             # Vetor Panel (gerenciador de mídia do painel)
-├── painel-web/                # Painel Web completo (AngularJS + temas)
+├── painel-web/                # Totem Digital completo (AngularJS + temas)
 │   ├── index.html             # App principal
 │   ├── js/speech.js           # Vocalização via Web Speech API
 │   └── themes/                # Temas disponíveis
@@ -188,7 +188,7 @@ novosga/
 |-----|-----------|
 | http://novosga.local | Aplicação principal (login: admin/123456) |
 | http://novosga.local/painel/ | Painel TV simples (`?unidade=1&servicos=1`) |
-| http://novosga.local/painel-web/ | Painel Web com temas e vocalização |
+| http://novosga.local/painel-web/ | Totem Digital com temas e vocalização |
 | http://novosga.local/totem/ | Totem de triagem touch |
 | http://novosga.local/api/ | API REST (OAuth2) |
 | http://novosga.local/modules/vetor.panel | Gerenciador de mídia do painel |
@@ -310,9 +310,9 @@ Exibidos na área principal do painel (slideshow):
 
 ---
 
-## Temas do Painel Web
+## Temas do Totem Digital
 
-Configurar em: Painel Web > Configuração > General > Tema
+Configurar em: Totem Digital > Configuração > General > Tema
 
 | Tema | Nome | Descrição |
 |------|------|-----------|
@@ -331,9 +331,9 @@ Todos os temas suportam: widgets do Vetor Panel, vocalização via Web Speech AP
 
 ## Vocalização (Web Speech API)
 
-O painel-web usa a Web Speech API nativa do navegador para vocalizar senhas.
+O Totem Digital usa a Web Speech API nativa do navegador para vocalizar senhas.
 
-Configurar em: Painel Web > Configuração > Som
+Configurar em: Totem Digital > Configuração > Som
 
 | Opção | Descrição |
 |-------|-----------|
@@ -386,7 +386,7 @@ O vhost configura:
 - `novosga.local` na porta 80
 - document root: `public/`
 - `/totem/` → totem de triagem touch
-- `/painel-web/` → painel web com temas
+- `/painel-web/` → Totem Digital com temas
 - `/api/` → API REST
 - `/modules/vetor.panel/resources/uploads/` → uploads de mídia
 - Upload máximo: 200MB
