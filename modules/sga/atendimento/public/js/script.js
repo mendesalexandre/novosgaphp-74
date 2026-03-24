@@ -130,7 +130,7 @@ SGA.Atendimento = {
                             item += '<div class="fila-card-header" onclick="' + onclick + '">';
                             item += '<span class="fila-senha">' + atendimento.senha + '</span>';
                             if (atendimento.prioridade) {
-                                item += '<span class="fila-badge-prio">Prioritário</span>';
+                                item += '<span class="fila-badge-prio">Preferencial</span>';
                             }
                             item += '</div>';
                             item += '<div class="fila-card-body">';

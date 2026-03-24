@@ -10,6 +10,7 @@ SGA.Triagem = {
     imprimir: false,
     pausado: false,
     prioridades: 0,
+    idPreferencial: null,
     simplificada: false,
     timeoutId: 0,
     desabilitados: [],
@@ -207,8 +208,9 @@ SGA.Triagem = {
 
     prioridade: function(btn) {
         if (SGA.Triagem.simplificada || SGA.Triagem.prioridades.length === 1) {
-            // modo simplificado ou só uma prioridade: emite direto com a primeira
-            SGA.Triagem.distribuiSenha($(btn).data('id'), SGA.Triagem.prioridades[0]);
+            // modo simplificado: usa Preferencial, senão a primeira
+            var idPrio = SGA.Triagem.idPreferencial || SGA.Triagem.prioridades[0];
+            SGA.Triagem.distribuiSenha($(btn).data('id'), idPrio);
         } else {
             var dialog = $("#dialog-prioridade");
             SGA.dialogs.modal(dialog, {

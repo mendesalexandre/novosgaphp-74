@@ -31,7 +31,21 @@ class TriagemController extends ModuleController
             $this->app()->view()->set('triagemSimplificada', ($meta && $meta->getValue() == '1'));
         }
         $query = $this->em()->createQuery("SELECT e FROM Novosga\Model\Prioridade e WHERE e.status = 1 AND e.peso > 0 ORDER BY e.nome");
-        $this->app()->view()->set('prioridades', $query->getResult());
+        $prioridades = $query->getResult();
+        $this->app()->view()->set('prioridades', $prioridades);
+
+        // buscar ID da prioridade "Preferencial" para triagem simplificada
+        $idPreferencial = null;
+        foreach ($prioridades as $p) {
+            if (strtolower($p->getNome()) === 'preferencial') {
+                $idPreferencial = $p->getId();
+                break;
+            }
+        }
+        if (!$idPreferencial && count($prioridades) > 0) {
+            $idPreferencial = $prioridades[0]->getId();
+        }
+        $this->app()->view()->set('idPreferencial', $idPreferencial);
     }
 
     private function servicos(Unidade $unidade)

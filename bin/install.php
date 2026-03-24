@@ -151,6 +151,7 @@ try {
     $stmt = $conn->query("SELECT COUNT(*) FROM prioridades");
     if ((int) $stmt->fetchColumn() === 0) {
         $conn->exec("INSERT INTO prioridades (nome, descricao, peso, status) VALUES ('Normal', 'Atendimento normal', 0, 1)");
+        $conn->exec("INSERT INTO prioridades (nome, descricao, peso, status) VALUES ('Preferencial', 'Atendimento preferencial genérico', 1, 1)");
         $conn->exec("INSERT INTO prioridades (nome, descricao, peso, status) VALUES ('Idoso', 'Prioritário idosos', 1, 1)");
         $conn->exec("INSERT INTO prioridades (nome, descricao, peso, status) VALUES ('Gestante', 'Prioritário gestantes', 1, 1)");
         $conn->exec("INSERT INTO prioridades (nome, descricao, peso, status) VALUES ('Deficiente', 'Prioritário deficientes', 1, 1)");
