@@ -1,0 +1,198 @@
+/**
+ * Tema Cartório
+ * Layout: senha à esquerda, mídia à direita, nome do cliente, relógio
+ */
+
+#layout, #layout * { line-height: 1; margin: 0; padding: 0; }
+#layout > div, #layout-content { height: 100%; }
+
+.cartorio {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #2c2c2c;
+    color: #fff;
+    overflow: hidden;
+}
+
+/* ===== Barra topo ===== */
+.cartorio .barra-topo {
+    height: 50px;
+    background: #3a3a3a;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 25px;
+    border-bottom: 3px solid #555;
+}
+
+.cartorio .barra-topo .nome-empresa {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #fff;
+    letter-spacing: 1px;
+}
+
+/* ===== Corpo ===== */
+.cartorio .corpo {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* ===== Coluna esquerda ===== */
+.cartorio .col-esquerda {
+    width: 35%;
+    display: flex;
+    flex-direction: column;
+    background: #3a8fc2;
+}
+
+.cartorio .bloco-senha {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.cartorio .bloco-senha .label-senha {
+    font-size: 1.8vw;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 5px;
+}
+
+.cartorio .bloco-senha .senha-numero span {
+    font-size: 9vw;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.cartorio .bloco-guiche {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0;
+}
+
+.cartorio .bloco-guiche .label-guiche {
+    font-size: 1.5vw;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 5px;
+}
+
+.cartorio .bloco-guiche .guiche-numero span {
+    font-size: 7vw;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.cartorio .bloco-servico {
+    background: #d32f2f;
+    padding: 12px 20px;
+    text-align: center;
+}
+
+.cartorio .bloco-servico span {
+    font-size: 1.5vw;
+    font-weight: bold;
+    color: #fff;
+}
+
+.cartorio .bloco-relogio {
+    background: #2e7db3;
+    padding: 15px;
+    text-align: center;
+}
+
+.cartorio .bloco-relogio .hora span {
+    font-size: 3vw;
+    font-weight: bold;
+    color: #fff;
+}
+
+.cartorio .bloco-relogio .hora .sep {
+    animation: cartorio-blink 1s infinite;
+}
+
+@keyframes cartorio-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.cartorio .bloco-relogio .data {
+    font-size: 1vw;
+    color: rgba(255,255,255,0.7);
+    margin-top: 5px;
+}
+
+/* ===== Coluna direita ===== */
+.cartorio .col-direita {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #1a1a1a;
+}
+
+.cartorio #media-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.cartorio #media {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.cartorio #media .widget { height: 100%; }
+.cartorio #media video,
+.cartorio #media img { width: 100%; height: 100%; object-fit: contain; vertical-align: middle; }
+
+.cartorio .bloco-cliente {
+    background: #f0a500;
+    padding: 15px 25px;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.cartorio .bloco-cliente .label-cliente {
+    font-size: 1vw;
+    color: rgba(0,0,0,0.6);
+    display: block;
+}
+
+.cartorio .bloco-cliente .nome-cliente {
+    font-size: 2.5vw;
+    font-weight: bold;
+    color: #333;
+    display: block;
+}
+
+/* ===== Rodapé notícias ===== */
+.cartorio .rodape-news {
+    height: 0;
+    overflow: hidden;
+}
+
+.cartorio .rodape-news .panel-heading { display: none; }
+.cartorio .rodape-news .panel-body {
+    font-size: 1.2em;
+    color: #ccc;
+    padding: 8px 20px;
+}
+
+/* ===== Cores por tipo ===== */
+#layout.normal .cartorio .col-esquerda { background: #3a8fc2; }
+#layout.normal .cartorio .bloco-servico { background: #2e7db3; }
+
+#layout.prioridade .cartorio .col-esquerda { background: #c0392b; }
+#layout.prioridade .cartorio .bloco-servico { background: #a93226; }
+#layout.prioridade .cartorio .bloco-relogio { background: #922b21; }

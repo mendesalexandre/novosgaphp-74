@@ -1,0 +1,13 @@
+{
+    "name": "Cartório",
+    "description": "Tema para cartórios e registros civis. Senha à esquerda com guichê, mídia à direita, nome do cliente e relógio.",
+    "authors": [
+        {
+            "name": "NovoSGA",
+            "email": ""
+        }
+    ],
+    "events": {
+        "onload": "VetorPanel"
+    }
+}

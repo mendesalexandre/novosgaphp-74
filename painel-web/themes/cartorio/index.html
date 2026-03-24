@@ -1,0 +1,59 @@
+
+<div id="layout-content" class="cartorio">
+    <!-- Barra topo -->
+    <div class="barra-topo">
+        <span class="nome-empresa" id="nome-empresa-painel">CARTÓRIO DE REGISTRO CIVIL</span>
+    </div>
+
+    <div class="corpo">
+        <!-- Coluna esquerda: Senha + Guichê + Serviço + Relógio -->
+        <div class="col-esquerda">
+            <div class="bloco-senha">
+                <div class="label-senha">Senha</div>
+                <div class="senha-numero blink">
+                    <span>{{ ultima.texto }}</span>
+                </div>
+            </div>
+
+            <div class="bloco-guiche">
+                <div class="label-guiche">Guichê</div>
+                <div class="guiche-numero blink">
+                    <span>{{ ultima.numeroLocal }}</span>
+                </div>
+            </div>
+
+            <div class="bloco-servico">
+                <span>{{ ultima.servico || ultima.mensagem }}</span>
+            </div>
+
+            <div class="bloco-relogio" id="relogio-cartorio">
+                <div class="hora">
+                    <span id="cart-hours">00</span>
+                    <span class="sep">:</span>
+                    <span id="cart-min">00</span>
+                    <span class="sep">:</span>
+                    <span id="cart-sec">00</span>
+                </div>
+                <div class="data" id="cart-data"></div>
+            </div>
+        </div>
+
+        <!-- Coluna direita: Mídia + Cliente -->
+        <div class="col-direita">
+            <div id="media-container">
+                <div id="media"></div>
+            </div>
+
+            <div class="bloco-cliente">
+                <span class="label-cliente">Cliente:</span>
+                <span class="nome-cliente">{{ ultima.nomeCliente }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rodapé: notícias -->
+    <div id="news" class="rodape-news">
+        <div class="panel-heading"><span class="pull-right text-muted"></span></div>
+        <div class="panel-body"></div>
+    </div>
+</div>
