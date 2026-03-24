@@ -131,6 +131,16 @@
                         </label>
                     </div>
                     <p class="help-block">{% trans %}Quando desativado, o atendimento é finalizado diretamente ao encerrar, sem exigir a seleção dos serviços realizados.{% endtrans %}</p>
+                    <hr>
+                    <div class="checkbox">
+                        <label for="triagem-simplificada">
+                            <input id="triagem-simplificada" name="triagem_simplificada" type="checkbox" value="1"
+                                   {% if triagemSimplificada %}checked="checked"{% endif %}
+                                   onclick="SGA.Unidade.salvarAvancado()" />
+                            {% trans %}Triagem simplificada (Convencional / Preferencial){% endtrans %}
+                        </label>
+                    </div>
+                    <p class="help-block">{% trans %}Quando ativado, o botão Prioridade na triagem emite a senha diretamente sem pedir para escolher o tipo de prioridade (Idoso, Gestante, etc).{% endtrans %}</p>
                 </fieldset>
             </form>
         </div>

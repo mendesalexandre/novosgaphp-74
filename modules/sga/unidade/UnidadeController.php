@@ -48,11 +48,14 @@ class UnidadeController extends ModuleController
             $permitirChamarSenhaDireta = ($meta && $meta->getValue() == '1');
             $metaCodif = $unidadeService->meta($unidade, 'exigir_codificacao');
             $exigirCodificacao = (!$metaCodif || $metaCodif->getValue() != '0');
+            $metaTriagem = $unidadeService->meta($unidade, 'triagem_simplificada');
+            $triagemSimplificada = ($metaTriagem && $metaTriagem->getValue() == '1');
 
             $this->app()->view()->set('servicos', $servicos);
             $this->app()->view()->set('locais', $locais);
             $this->app()->view()->set('permitirChamarSenhaDireta', $permitirChamarSenhaDireta);
             $this->app()->view()->set('exigirCodificacao', $exigirCodificacao);
+            $this->app()->view()->set('triagemSimplificada', $triagemSimplificada);
         }
     }
 
@@ -157,9 +160,11 @@ class UnidadeController extends ModuleController
             }
             $chamarSenhaDireta = $context->request()->post('chamar_senha_direta', '0');
             $exigirCodificacao = $context->request()->post('exigir_codificacao', '1');
+            $triagemSimplificada = $context->request()->post('triagem_simplificada', '0');
             $unidadeService = new UnidadeService($this->em());
             $unidadeService->meta($unidade, 'permitir_chamar_senha_direta', $chamarSenhaDireta);
             $unidadeService->meta($unidade, 'exigir_codificacao', $exigirCodificacao);
+            $unidadeService->meta($unidade, 'triagem_simplificada', $triagemSimplificada);
             $response->success = true;
         } catch (Exception $e) {
             $response->message = $e->getMessage();

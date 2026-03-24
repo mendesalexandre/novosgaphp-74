@@ -10,6 +10,7 @@ SGA.Triagem = {
     imprimir: false,
     pausado: false,
     prioridades: 0,
+    simplificada: false,
     timeoutId: 0,
     desabilitados: [],
     
@@ -205,12 +206,12 @@ SGA.Triagem = {
     },
 
     prioridade: function(btn) {
-        if (SGA.Triagem.prioridades.length === 1) {
-            // se so tiver uma prioridade, emite a senha direto
+        if (SGA.Triagem.simplificada || SGA.Triagem.prioridades.length === 1) {
+            // modo simplificado ou só uma prioridade: emite direto com a primeira
             SGA.Triagem.distribuiSenha($(btn).data('id'), SGA.Triagem.prioridades[0]);
         } else {
             var dialog = $("#dialog-prioridade");
-            SGA.dialogs.modal(dialog, { 
+            SGA.dialogs.modal(dialog, {
                 create: function() {
                     $('input:radio[name=prioridade]').on('click', function() {
                         dialog.find("button").prop('disabled', false);

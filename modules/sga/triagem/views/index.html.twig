@@ -247,6 +247,7 @@
     SGA.Triagem.ajaxUpdate();
     SGA.Triagem.prioridades = [{% for p in prioridades %}{{ p.id }},{% endfor %}];
     SGA.Triagem.imprimir = {% if unidade.statusImpressao %}true{% else %}false{% endif %};
+    SGA.Triagem.simplificada = {{ triagemSimplificada ? 'true' : 'false' }};
     SGA.Triagem.init();
 </script>
 {% endblock %}

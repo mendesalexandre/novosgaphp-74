@@ -24,6 +24,11 @@ class TriagemController extends ModuleController
         $this->app()->view()->set('unidade', $unidade);
         if ($unidade) {
             $this->app()->view()->set('servicos', $this->servicos($unidade));
+
+            // verificar configuração de triagem simplificada
+            $unidadeService = new \Novosga\Service\UnidadeService($this->em());
+            $meta = $unidadeService->meta($unidade, 'triagem_simplificada');
+            $this->app()->view()->set('triagemSimplificada', ($meta && $meta->getValue() == '1'));
         }
         $query = $this->em()->createQuery("SELECT e FROM Novosga\Model\Prioridade e WHERE e.status = 1 AND e.peso > 0 ORDER BY e.nome");
         $this->app()->view()->set('prioridades', $query->getResult());
