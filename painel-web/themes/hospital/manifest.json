@@ -1,0 +1,14 @@
+{
+    "name": "Hospital",
+    "description": "Tema hospitalar baseado no painel do Hospital Albert Sabin (Gov-CE). Suporta protocolo Manchester com cores por gravidade.",
+    "authors": [
+        {
+            "name": "Pedro Costa",
+            "email": "pedro@plcosta.com",
+            "homepage": "http://plcosta.com"
+        }
+    ],
+    "events": {
+        "onload": "HospitalPanel"
+    }
+}
