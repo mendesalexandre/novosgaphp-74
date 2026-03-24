@@ -1,10 +1,11 @@
 {
-    "name": "Vetor Panel",
-    "version": "1.0.0",
-    "description": "Gerenciador de mídia do painel de senhas (vídeos, imagens, HTML)",
-    "author": {
-        "name": "NovoSGA",
-        "email": ""
-    },
-    "type": 1
+  "name": "Vetor Panel",
+  "version": "1.0.0",
+  "description": "Módulo de administração do Vetor Panel",
+  "author": {
+    "name": "Rogério Lino",
+    "email": "rogeriolino@gmail.com",
+    "homepage": "http://rogeriolino.com"
+  },
+  "type": 1
 }

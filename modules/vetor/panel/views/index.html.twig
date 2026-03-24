@@ -8,22 +8,39 @@
     <div class="tab-content">
         <div id="tab-widgets" class="tab-pane active">
             <div class="well well-sm" style="margin-top:10px">
-                Configure os widgets que serão exibidos na área de mídia do painel de senhas (tema Vetor).
-                Você pode adicionar vídeos (URL ou arquivo enviado), imagens e conteúdo HTML.
+                Configure os widgets exibidos na área de mídia do painel de senhas.
+                Os widgets são exibidos em sequência (slideshow) na área principal do tema Vetor.
             </div>
 
             <div id="widgets-lista"></div>
 
             <div style="margin-top:15px">
-                <button class="btn btn-success" onclick="VetorAdmin.adicionarWidget('video')">
-                    <span class="glyphicon glyphicon-film"></span> Vídeo
-                </button>
-                <button class="btn btn-info" onclick="VetorAdmin.adicionarWidget('image')">
-                    <span class="glyphicon glyphicon-picture"></span> Imagem
-                </button>
-                <button class="btn btn-warning" onclick="VetorAdmin.adicionarWidget('html')">
-                    <span class="glyphicon glyphicon-pencil"></span> HTML
-                </button>
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="VetorAdmin.adicionarWidget('video')">
+                        <span class="glyphicon glyphicon-film"></span> Vídeo
+                    </button>
+                    <button class="btn btn-default" onclick="VetorAdmin.adicionarWidget('youtube')">
+                        <span class="glyphicon glyphicon-play-circle"></span> YouTube
+                    </button>
+                    <button class="btn btn-default" onclick="VetorAdmin.adicionarWidget('iptv')">
+                        <span class="glyphicon glyphicon-facetime-video"></span> IPTV
+                    </button>
+                    <button class="btn btn-info" onclick="VetorAdmin.adicionarWidget('image')">
+                        <span class="glyphicon glyphicon-picture"></span> Imagem
+                    </button>
+                    <button class="btn btn-warning" onclick="VetorAdmin.adicionarWidget('html')">
+                        <span class="glyphicon glyphicon-pencil"></span> HTML
+                    </button>
+                    <button class="btn btn-default" onclick="VetorAdmin.adicionarWidget('comunicado')">
+                        <span class="glyphicon glyphicon-bullhorn"></span> Comunicado
+                    </button>
+                    <button class="btn btn-default" onclick="VetorAdmin.adicionarWidget('clima')">
+                        <span class="glyphicon glyphicon-cloud"></span> Clima
+                    </button>
+                    <button class="btn btn-default" onclick="VetorAdmin.adicionarWidget('noticias')">
+                        <span class="glyphicon glyphicon-list-alt"></span> Notícias RSS
+                    </button>
+                </div>
                 <button class="btn btn-primary pull-right" onclick="VetorAdmin.salvar()">
                     <span class="glyphicon glyphicon-floppy-disk"></span> Salvar Configuração
                 </button>
@@ -55,13 +72,7 @@
             <h4>Arquivos no servidor</h4>
             <table class="table table-striped" id="tabela-arquivos">
                 <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>Tipo</th>
-                        <th>Tamanho</th>
-                        <th>URL</th>
-                        <th></th>
-                    </tr>
+                    <tr><th>Nome</th><th>Tipo</th><th>Tamanho</th><th>URL</th><th></th></tr>
                 </thead>
                 <tbody></tbody>
             </table>
@@ -73,37 +84,74 @@
 var VetorAdmin = {
     widgets: {{ widgets|json_encode()|raw }},
 
+    tipoLabels: {
+        'video': '<span class="glyphicon glyphicon-film"></span> VÍDEO',
+        'youtube': '<span class="glyphicon glyphicon-play-circle"></span> YOUTUBE',
+        'iptv': '<span class="glyphicon glyphicon-facetime-video"></span> IPTV',
+        'image': '<span class="glyphicon glyphicon-picture"></span> IMAGEM',
+        'html': '<span class="glyphicon glyphicon-pencil"></span> HTML',
+        'comunicado': '<span class="glyphicon glyphicon-bullhorn"></span> COMUNICADO',
+        'clima': '<span class="glyphicon glyphicon-cloud"></span> CLIMA',
+        'noticias': '<span class="glyphicon glyphicon-list-alt"></span> NOTÍCIAS'
+    },
+
     renderizar: function() {
         var lista = $('#widgets-lista');
         lista.html('');
         for (var i = 0; i < VetorAdmin.widgets.length; i++) {
             var w = VetorAdmin.widgets[i];
+            var label = VetorAdmin.tipoLabels[w.type] || w.type.toUpperCase();
+
             var card = '<div class="panel panel-default" data-index="' + i + '">';
             card += '<div class="panel-heading">';
-            card += '<strong>#' + (i+1) + ' ' + w.type.toUpperCase() + '</strong>';
-            card += ' — <input type="text" value="' + (w.title || '') + '" placeholder="Título" class="input-sm" onchange="VetorAdmin.widgets[' + i + '].title=this.value" style="width:200px">';
+            card += '<strong>#' + (i+1) + ' ' + label + '</strong>';
+            card += ' — <input type="text" value="' + VetorAdmin.esc(w.title || '') + '" placeholder="Título" class="input-sm" onchange="VetorAdmin.widgets[' + i + '].title=this.value" style="width:200px">';
             card += ' <label style="margin-left:15px"><input type="checkbox" ' + (w.active ? 'checked' : '') + ' onchange="VetorAdmin.widgets[' + i + '].active=this.checked"> Ativo</label>';
             card += ' <button class="btn btn-xs btn-danger pull-right" onclick="VetorAdmin.removerWidget(' + i + ')"><span class="glyphicon glyphicon-trash"></span></button>';
-            if (i > 0) {
-                card += ' <button class="btn btn-xs btn-default pull-right" style="margin-right:5px" onclick="VetorAdmin.moverWidget(' + i + ',-1)"><span class="glyphicon glyphicon-arrow-up"></span></button>';
-            }
-            if (i < VetorAdmin.widgets.length - 1) {
-                card += ' <button class="btn btn-xs btn-default pull-right" style="margin-right:5px" onclick="VetorAdmin.moverWidget(' + i + ',1)"><span class="glyphicon glyphicon-arrow-down"></span></button>';
-            }
+            if (i > 0) card += ' <button class="btn btn-xs btn-default pull-right" style="margin-right:5px" onclick="VetorAdmin.moverWidget(' + i + ',-1)"><span class="glyphicon glyphicon-arrow-up"></span></button>';
+            if (i < VetorAdmin.widgets.length - 1) card += ' <button class="btn btn-xs btn-default pull-right" style="margin-right:5px" onclick="VetorAdmin.moverWidget(' + i + ',1)"><span class="glyphicon glyphicon-arrow-down"></span></button>';
             card += '</div>';
             card += '<div class="panel-body">';
 
-            if (w.type === 'video' || w.type === 'image' || w.type === 'audio') {
-                card += '<div class="form-group"><label>URL do ' + w.type + '</label>';
-                card += '<input type="text" class="form-control" value="' + (w.content || '') + '" placeholder="http://... ou arquivo enviado" onchange="VetorAdmin.widgets[' + i + '].content=this.value"></div>';
-            } else if (w.type === 'html') {
-                card += '<div class="form-group"><label>Conteúdo HTML</label>';
-                card += '<textarea class="form-control" rows="4" onchange="VetorAdmin.widgets[' + i + '].content=this.value">' + (w.content || '') + '</textarea></div>';
+            // Campos específicos por tipo
+            switch (w.type) {
+                case 'video':
+                case 'image':
+                case 'audio':
+                    card += VetorAdmin.campoUrl(i, w, 'URL do ' + w.type, 'http://... ou copie da aba Arquivos');
+                    break;
+                case 'youtube':
+                    card += VetorAdmin.campoTexto(i, w, 'content', 'ID do vídeo YouTube', 'Ex: dQw4w9WgXcQ (parte final da URL)');
+                    break;
+                case 'iptv':
+                    card += VetorAdmin.campoUrl(i, w, 'URL do stream IPTV', 'http://... (m3u8, ts, etc)');
+                    break;
+                case 'html':
+                    card += '<div class="form-group"><label>Conteúdo HTML</label>';
+                    card += '<textarea class="form-control" rows="4" onchange="VetorAdmin.widgets[' + i + '].content=this.value">' + VetorAdmin.esc(w.content || '') + '</textarea></div>';
+                    break;
+                case 'comunicado':
+                    card += VetorAdmin.campoTexto(i, w, 'content', 'Texto do comunicado', 'Mensagem que será exibida no painel');
+                    card += '<div class="row">';
+                    card += '<div class="col-sm-4"><label>Cor do texto</label><input type="color" class="form-control" value="' + (w.textColor || '#FFFFFF') + '" onchange="VetorAdmin.widgets[' + i + '].textColor=this.value"></div>';
+                    card += '<div class="col-sm-4"><label>Tamanho da fonte (vw)</label><input type="number" class="form-control" value="' + (w.fontSize || 4) + '" min="1" max="20" onchange="VetorAdmin.widgets[' + i + '].fontSize=parseInt(this.value)"></div>';
+                    card += '</div>';
+                    break;
+                case 'clima':
+                    card += VetorAdmin.campoTexto(i, w, 'cidade', 'Cidade', 'Ex: Salvador,BR ou São Paulo,BR');
+                    card += '<p class="help-block">Usa a API gratuita do OpenWeatherMap. Informe a chave da API abaixo (obtenha em <a href="https://openweathermap.org/api" target="_blank">openweathermap.org</a>).</p>';
+                    card += VetorAdmin.campoTexto(i, w, 'apiKey', 'Chave da API (OpenWeatherMap)', 'Ex: abc123def456...');
+                    break;
+                case 'noticias':
+                    card += VetorAdmin.campoTexto(i, w, 'content', 'URL do feed RSS/Atom', 'http://g1.globo.com/dynamo/rss2.xml');
+                    card += '<div class="form-group"><label>Quantidade de itens</label><input type="number" class="form-control" value="' + (w.maxItems || 10) + '" min="1" max="50" onchange="VetorAdmin.widgets[' + i + '].maxItems=parseInt(this.value)"></div>';
+                    break;
             }
 
-            card += '<div class="row">';
-            card += '<div class="col-sm-4"><label>Duração (ms)</label><input type="number" class="form-control" value="' + (w.duration || 10000) + '" onchange="VetorAdmin.widgets[' + i + '].duration=parseInt(this.value)"></div>';
-            card += '<div class="col-sm-4"><label>Volume (%)</label><input type="number" class="form-control" value="' + (w.volume || 100) + '" min="0" max="100" onchange="VetorAdmin.widgets[' + i + '].volume=parseInt(this.value)"></div>';
+            // Campos comuns
+            card += '<div class="row" style="margin-top:10px">';
+            card += '<div class="col-sm-4"><label>Duração (ms)</label><input type="number" class="form-control" value="' + (w.duration || 10000) + '" onchange="VetorAdmin.widgets[' + i + '].duration=parseInt(this.value)"><p class="help-block">0 = duração do vídeo</p></div>';
+            card += '<div class="col-sm-4"><label>Volume (%)</label><input type="number" class="form-control" value="' + (w.volume != null ? w.volume : 100) + '" min="0" max="100" onchange="VetorAdmin.widgets[' + i + '].volume=parseInt(this.value)"></div>';
             card += '<div class="col-sm-4"><label>Cor de fundo</label><input type="color" class="form-control" value="' + (w.background || '#000000') + '" onchange="VetorAdmin.widgets[' + i + '].background=this.value"></div>';
             card += '</div>';
 
@@ -112,16 +160,43 @@ var VetorAdmin = {
         }
     },
 
+    campoUrl: function(i, w, label, placeholder) {
+        return '<div class="form-group"><label>' + label + '</label>' +
+            '<input type="text" class="form-control" value="' + VetorAdmin.esc(w.content || '') + '" placeholder="' + placeholder + '" onchange="VetorAdmin.widgets[' + i + '].content=this.value"></div>';
+    },
+
+    campoTexto: function(i, w, campo, label, placeholder) {
+        return '<div class="form-group"><label>' + label + '</label>' +
+            '<input type="text" class="form-control" value="' + VetorAdmin.esc(w[campo] || '') + '" placeholder="' + placeholder + '" onchange="VetorAdmin.widgets[' + i + '].' + campo + '=this.value"></div>';
+    },
+
+    esc: function(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    },
+
     adicionarWidget: function(tipo) {
-        VetorAdmin.widgets.push({
-            type: tipo,
-            title: '',
-            content: '',
-            active: true,
-            duration: tipo === 'video' ? 0 : 10000,
-            volume: 100,
-            background: '#000000'
-        });
+        var w = {
+            type: tipo, title: '', content: '', active: true,
+            duration: (tipo === 'video' || tipo === 'youtube' || tipo === 'iptv') ? 0 : 15000,
+            volume: 100, background: '#000000'
+        };
+        if (tipo === 'comunicado') {
+            w.textColor = '#FFFFFF';
+            w.fontSize = 4;
+            w.background = '#182945';
+        }
+        if (tipo === 'clima') {
+            w.cidade = '';
+            w.apiKey = '';
+            w.duration = 30000;
+            w.background = '#1a1a2e';
+        }
+        if (tipo === 'noticias') {
+            w.maxItems = 10;
+            w.duration = 30000;
+            w.background = '#182945';
+        }
+        VetorAdmin.widgets.push(w);
         VetorAdmin.renderizar();
     },
 
@@ -155,35 +230,22 @@ var VetorAdmin = {
 
     upload: function() {
         var input = document.getElementById('input-arquivo');
-        if (!input.files || !input.files[0]) {
-            alert('Selecione um arquivo');
-            return;
-        }
+        if (!input.files || !input.files[0]) { alert('Selecione um arquivo'); return; }
         var formData = new FormData();
         formData.append('arquivo', input.files[0]);
-
         $('#upload-progresso').show();
-
         $.ajax({
-            url: SGA.url('upload'),
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
+            url: SGA.url('upload'), type: 'POST', data: formData,
+            processData: false, contentType: false,
             success: function(response) {
                 $('#upload-progresso').hide();
                 if (response.success) {
-                    alert('Arquivo enviado: ' + response.data.url);
+                    alert('Arquivo enviado!\nURL: ' + response.data.url);
                     input.value = '';
                     VetorAdmin.carregarArquivos();
-                } else {
-                    alert('Erro: ' + response.message);
-                }
+                } else { alert('Erro: ' + response.message); }
             },
-            error: function() {
-                $('#upload-progresso').hide();
-                alert('Erro ao enviar arquivo');
-            }
+            error: function() { $('#upload-progresso').hide(); alert('Erro ao enviar'); }
         });
     },
 
@@ -196,15 +258,10 @@ var VetorAdmin = {
                 if (response.success && response.data) {
                     for (var i = 0; i < response.data.length; i++) {
                         var a = response.data[i];
-                        var tamanho = (a.tamanho / 1024 / 1024).toFixed(2) + ' MB';
-                        var tr = '<tr>';
-                        tr += '<td>' + a.nome + '</td>';
-                        tr += '<td>' + a.tipo + '</td>';
-                        tr += '<td>' + tamanho + '</td>';
-                        tr += '<td><input type="text" class="form-control input-sm" value="' + a.url + '" onclick="this.select()" readonly></td>';
-                        tr += '<td><button class="btn btn-xs btn-danger" onclick="VetorAdmin.removerArquivo(\'' + a.nome + '\')"><span class="glyphicon glyphicon-trash"></span></button></td>';
-                        tr += '</tr>';
-                        tbody.append(tr);
+                        var tam = (a.tamanho / 1024 / 1024).toFixed(2) + ' MB';
+                        tbody.append('<tr><td>' + a.nome + '</td><td>' + a.tipo + '</td><td>' + tam + '</td>' +
+                            '<td><input type="text" class="form-control input-sm" value="' + a.url + '" onclick="this.select()" readonly></td>' +
+                            '<td><button class="btn btn-xs btn-danger" onclick="VetorAdmin.removerArquivo(\'' + a.nome + '\')"><span class="glyphicon glyphicon-trash"></span></button></td></tr>');
                     }
                 }
             }
@@ -214,18 +271,13 @@ var VetorAdmin = {
     removerArquivo: function(nome) {
         if (confirm('Remover o arquivo ' + nome + '?')) {
             SGA.ajax({
-                url: SGA.url('remover_arquivo'),
-                type: 'post',
-                data: { nome: nome },
-                success: function() {
-                    VetorAdmin.carregarArquivos();
-                }
+                url: SGA.url('remover_arquivo'), type: 'post', data: { nome: nome },
+                success: function() { VetorAdmin.carregarArquivos(); }
             });
         }
     }
 };
 
-// Inicializar
 VetorAdmin.renderizar();
 VetorAdmin.carregarArquivos();
 </script>
