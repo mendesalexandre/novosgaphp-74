@@ -1,419 +1,358 @@
-# Prompt — NovoSGA v1.5.2: Instalação, Compatibilidade PHP 7.4 e Melhorias
+# NovoSGA v1.5.2 — Documentação do Projeto
 
-## Contexto do projeto
+## Visão Geral
 
-Vamos trabalhar com o **NovoSGA v1.5.2**, um sistema de gerenciamento de fila de atendimento (senhas) open source, escrito em **PHP com Symfony 3.x** e **Doctrine ORM**, com suporte nativo a **PostgreSQL**.
+Sistema de gerenciamento de fila de atendimento (senhas) open source, baseado no [NovoSGA v1.5.2](https://github.com/novosga/novosga/releases/tag/v1.5.2), com correções de compatibilidade e melhorias funcionais.
 
-O repositório original está em: https://github.com/novosga/novosga/releases/tag/v1.5.2
-
-O objetivo é:
-
-1. Baixar e configurar o projeto
-2. Atualizar as dependências para rodar em **PHP 7.4**
-3. Corrigir incompatibilidades com PHP 7.4 e Symfony 3.4
-4. Implementar melhorias funcionais listadas abaixo
+- **Framework**: Slim Framework 2.6 (NÃO Symfony)
+- **ORM**: Doctrine ORM 2.8+ com annotations
+- **Template Engine**: Twig 2.x (via slim/views)
+- **Banco de Dados**: PostgreSQL (via Doctrine DBAL com driver `pdo_pgsql`)
+- **Autenticação API**: OAuth2 (bshaffer/oauth2-server-php)
+- **PHP**: >=7.1 (testado em 8.4)
 
 ---
 
-## ETAPA 1 — Obter o projeto
+## Estrutura do Projeto
 
-Clone o repositório na tag v1.5.2:
-
-```bash
-git clone --branch v1.5.2 --depth 1 https://github.com/novosga/novosga.git novosga
-cd novosga
 ```
-
-Antes de qualquer coisa, explore a estrutura completa do projeto:
-
-- Leia o `composer.json` raiz
-- Leia o `app/AppKernel.php` para mapear todos os bundles registrados
-- Liste todos os diretórios em `src/` e `app/`
-- Leia o `app/config/config.yml` e `app/config/parameters.yml.dist`
-- Leia o `web/app.php` e `web/app_dev.php`
-- Liste os controllers existentes em cada Bundle dentro de `src/`
-
-Documente a estrutura encontrada antes de fazer qualquer modificação.
-
----
-
-## ETAPA 2 — Atualizar composer.json para PHP 7.4
-
-Abra o `composer.json` e faça as seguintes alterações:
-
-### 2.1 Versão do PHP
-
-Altere o requisito de PHP para aceitar 7.4:
-
-```json
-"php": ">=7.1 <8.0"
-```
-
-### 2.2 Travar Symfony na 3.4 LTS
-
-Localize todas as dependências `symfony/*` e trave na versão 3.4 LTS que é a mais estável para PHP 7.4:
-
-```json
-"symfony/symfony": "3.4.*"
-```
-
-Se houver outros pacotes symfony separados (não o metapacote), trave todos em `"3.4.*"`.
-
-### 2.3 Doctrine ORM
-
-Trave o Doctrine em versões compatíveis com PHP 7.4 e Symfony 3.4:
-
-```json
-"doctrine/orm": "^2.7",
-"doctrine/dbal": "^2.10",
-"doctrine/doctrine-bundle": "^1.12"
-```
-
-### 2.4 Twig
-
-```json
-"twig/twig": "^1.44 || ^2.12"
-```
-
-### 2.5 Remover ou atualizar pacotes conflitantes
-
-Verifique se existem no composer.json os seguintes pacotes problemáticos em PHP 7.4 e atualize se necessário:
-
-- `sensio/distribution-bundle` → remover ou atualizar para `^5.0`
-- `sensio/framework-extra-bundle` → atualizar para `^5.5`
-- `sensio/generator-bundle` → apenas dev, pode remover
-- `incenteev/composer-parameter-handler` → manter se existir, compatível
-
-### 2.6 Após editar, rodar:
-
-```bash
-composer update --no-scripts -W
-```
-
-Se houver conflitos de dependências, resolva um por um, priorizando manter Symfony em 3.4.x.
-
----
-
-## ETAPA 3 — Corrigir incompatibilidades com PHP 7.4
-
-Após instalar as dependências, execute a aplicação e corrija os erros encontrados. Os mais comuns nessa migração de PHP 5.x → 7.4 com Symfony 3.x são:
-
-### 3.1 Tipagem de exceções
-
-PHP 7+ separou `Error` de `Exception`. Procure em todo o código por:
-
-```php
-catch (Exception $e)
-```
-
-E onde necessário, troque por:
-
-```php
-catch (\Throwable $e)
-```
-
-Isso se aplica especialmente a handlers globais de erro. Use `grep -r "catch (Exception" src/` para localizar.
-
-### 3.2 Funções removidas/depreciadas
-
-Procure e substitua:
-
-- `each()` → reescrever com `foreach`
-- `create_function()` → reescrever com closure `function() {}`
-- `ereg()`, `eregi()` → substituir por `preg_match()`
-- `split()` → substituir por `explode()` ou `preg_split()`
-- `mysql_*` → não deve existir (usa Doctrine), mas verificar
-
-Use:
-
-```bash
-grep -rn "each(" src/ web/
-grep -rn "create_function" src/
-grep -rn "ereg\b" src/
-```
-
-### 3.3 Construtor de objetos não tipados (PHP 7.4 strict)
-
-Se encontrar propriedades de classe sem tipo inicializadas com `null` e depois usadas sem verificação, adicione inicialização no construtor ou declare como `?TipoOuNullable`.
-
-### 3.4 Twig deprecations
-
-Com Twig 2.x, algumas funções do Twig 1.x mudaram. Verifique as views em `src/*/Resources/views/` e corrija:
-
-- `{% spaceless %}` → envolver com `{% apply spaceless %}`
-- Filtros não encontrados → verificar extensões registradas
-
-### 3.5 Limpar cache após correções
-
-```bash
-php app/console cache:clear --env=dev
-php app/console cache:clear --env=prod
+novosga/
+├── bootstrap.php              # Constantes e autoloader
+├── composer.json
+├── cli-config.php             # Doctrine CLI helper
+├── config/
+│   ├── database.php           # Conexão PostgreSQL (driver, host, porta, dbname, user, password)
+│   └── app.php                # Configuração do app (hooks, queue, auth)
+├── public/                    # Web root (entry point do servidor)
+│   ├── index.php              # Rotas Slim (login, home, modules)
+│   ├── api/index.php          # Rotas API REST (OAuth2, painel, atendimentos)
+│   └── painel/index.html      # Painel TV de senhas (polling)
+├── src/Novosga/               # Core do sistema
+│   ├── App.php                # Extends Slim\Slim
+│   ├── Api/                   # ApiV1 (endpoints REST), OAuth2Server
+│   ├── Auth/                  # Autenticação (Database, LDAP)
+│   ├── Config/                # DatabaseConfig, AppConfig (arquivos PHP em config/)
+│   ├── Controller/            # Controllers base (Home, Login, Ticket, Module)
+│   ├── Model/                 # Entidades Doctrine (Atendimento, PainelSenha, etc)
+│   ├── Service/               # AtendimentoService, FilaService, UnidadeService, etc
+│   ├── Slim/                  # Middlewares (Auth, Install)
+│   ├── Twig/                  # Extensões Twig customizadas
+│   └── Util/                  # Utilitários (Arrays, DateUtil, I18n, etc)
+├── modules/sga/               # Módulos do sistema
+│   ├── atendimento/           # Chamar, iniciar, encerrar, codificar senhas
+│   ├── monitor/               # Visualizar fila, transferir, cancelar, reativar
+│   ├── triagem/               # Emissão de senhas
+│   ├── unidade/               # Configuração da unidade (serviços, impressão, avançado)
+│   ├── admin/                 # Painel administrativo
+│   ├── estatisticas/          # Relatórios e gráficos
+│   ├── cargos/                # Gerenciamento de cargos
+│   ├── grupos/                # Gerenciamento de grupos
+│   ├── locais/                # Locais de atendimento
+│   ├── prioridades/           # Tipos de prioridade
+│   ├── servicos/              # Serviamento de serviços globais
+│   ├── unidades/              # Gerenciamento de unidades
+│   ├── usuarios/              # Gerenciamento de usuários
+│   └── modulos/               # Instalação de módulos
+├── templates/                 # Templates globais (main, login, home, install, etc)
+└── var/
+    ├── cache/                 # Cache do Twig (limpar ao alterar templates)
+    └── log/                   # Logs da aplicação
 ```
 
 ---
 
-## ETAPA 4 — Configurar para PostgreSQL
+## Como Subir o Projeto
 
-Edite o arquivo `app/config/parameters.yml` (copiar do `.dist` se não existir):
+### Pré-requisitos
 
-```yaml
-parameters:
-  database_driver: pdo_pgsql
-  database_host: 127.0.0.1
-  database_port: 5432
-  database_name: novosga
-  database_user: novosga
-  database_password: novosga
-  mailer_transport: smtp
-  mailer_host: 127.0.0.1
-  mailer_user: ~
-  mailer_password: ~
-  secret: TROQUE_POR_UMA_STRING_ALEATORIA_LONGA
-```
+- PHP >= 7.1 (testado com 8.4)
+- PostgreSQL
+- Composer
+- Extensões PHP: pdo, pdo_pgsql, json, gettext, mbstring
 
-Verificar se o Doctrine DBAL tem o driver `pdo_pgsql` mapeado. No `app/config/config.yml`, a seção doctrine deve estar assim:
-
-```yaml
-doctrine:
-  dbal:
-    driver: "%database_driver%"
-    host: "%database_host%"
-    port: "%database_port%"
-    dbname: "%database_name%"
-    user: "%database_user%"
-    password: "%database_password%"
-    charset: UTF8
-```
-
-Rodar as migrations/schema:
+### Instalação
 
 ```bash
-php app/console doctrine:schema:create
-# ou se já existir banco:
-php app/console doctrine:schema:update --force
-```
+# 1. Instalar dependências
+composer install --no-scripts
 
----
+# 2. Criar banco de dados PostgreSQL
+sudo -u postgres psql -c "CREATE USER novosga WITH PASSWORD 'novosga';"
+sudo -u postgres psql -c "CREATE DATABASE novosga OWNER novosga ENCODING 'UTF8';"
 
-## ETAPA 5 — Melhoria: Chamar senha específica diretamente
+# 3. Criar schema (usar o script SQL nativo, NÃO o Doctrine schema:create)
+PGPASSWORD=novosga psql -h 127.0.0.1 -U novosga -d novosga -f src/Novosga/Install/sql/create/pgsql.sql
 
-Esta é a melhoria principal. Atualmente o sistema só permite "chamar próximo" (o primeiro da fila). Queremos permitir que o atendente clique em qualquer senha na fila e a chame diretamente.
-
-### 5.1 Localizar o AtendimentoBundle
-
-Abra e leia completamente os seguintes arquivos:
-
-- `src/NovoSGA/AtendimentoBundle/Controller/AtendimentoController.php`
-- `src/NovoSGA/AtendimentoBundle/Resources/views/` (todas as views)
-- `src/NovoSGA/CoreBundle/Service/AtendimentoServiceInterface.php` (ou similar)
-- `src/NovoSGA/CoreBundle/Entity/Atendimento.php`
-- `src/NovoSGA/CoreBundle/Entity/Senha.php` (ou nome equivalente)
-
-Entenda completamente o fluxo de `chamarProximo()` antes de implementar qualquer coisa.
-
-### 5.2 Adicionar configuração por unidade
-
-No bundle de configurações (`ConfiguracaoBundle` ou similar), adicionar campo booleano:
-
-```
-permitir_chamar_senha_direta (boolean, default: false)
-```
-
-- Adicionar na entidade de configuração da unidade
-- Adicionar migration/update no schema
-- Adicionar campo no formulário de configuração da unidade
-- Salvar e recuperar via repositório
-
-### 5.3 Novo endpoint no AtendimentoController
-
-Adicionar action `chamarEspecificoAction` no `AtendimentoController`:
-
-```php
-/**
- * @Route("/chamar/{id}", name="novosga_atendimento_chamar_especifico", methods={"POST"})
- */
-public function chamarEspecificoAction(Request $request, $id)
-{
-    // 1. Verificar se configuração permite chamar direto (verificar flag da unidade)
-    // 2. Buscar o Atendimento/Senha pelo $id
-    // 3. Verificar se a senha pertence à unidade atual do usuário logado
-    // 4. Verificar se a senha está no status correto (aguardando)
-    // 5. Chamar a mesma lógica que chamarProximo usa, mas passando a senha específica
-    // 6. Retornar JSON com resultado (padrão do sistema)
+# 4. Instalar módulos
+php -r "
+require 'bootstrap.php';
+\$db = \Novosga\Config\DatabaseConfig::getInstance();
+\$em = \$db->createEntityManager();
+\$service = new \Novosga\Service\ModuloService(\$em);
+foreach (glob(MODULES_PATH.'/sga/*', GLOB_ONLYDIR) as \$dir) {
+    \$service->install(\$dir, 'sga.' . basename(\$dir), 1);
 }
+"
+
+# 5. Inserir dados iniciais (prioridades, grupo, cargo, unidade, serviço, admin)
+PGPASSWORD=novosga psql -h 127.0.0.1 -U novosga -d novosga << 'EOSQL'
+INSERT INTO prioridades (nome, descricao, peso, status) VALUES ('Normal', 'Atendimento normal', 0, 1);
+INSERT INTO prioridades (nome, descricao, peso, status) VALUES ('Idoso', 'Prioritário idosos', 1, 1);
+INSERT INTO prioridades (nome, descricao, peso, status) VALUES ('Gestante', 'Prioritário gestantes', 1, 1);
+INSERT INTO grupos (nome, descricao, esquerda, direita, nivel) VALUES ('Raiz', 'Grupo raiz', 1, 4, 0);
+INSERT INTO cargos (nome, descricao, esquerda, direita, nivel) VALUES ('Administrador', 'Administrador do sistema', 1, 2, 0);
+INSERT INTO cargos_mod_perm (cargo_id, modulo_id, permissao) SELECT (SELECT id FROM cargos LIMIT 1), id, 3 FROM modulos;
+INSERT INTO unidades (grupo_id, codigo, nome, status, stat_imp, msg_imp) VALUES ((SELECT id FROM grupos LIMIT 1), '1', 'Unidade Padrão', 1, 0, '');
+INSERT INTO servicos (descricao, nome, status, peso) VALUES ('Atendimento geral', 'Atendimento', 1, 1);
+INSERT INTO uni_serv (unidade_id, servico_id, local_id, sigla, status, peso) VALUES (
+  (SELECT id FROM unidades LIMIT 1), (SELECT id FROM servicos LIMIT 1),
+  (SELECT id FROM locais LIMIT 1), 'AAA', 1, 1);
+INSERT INTO config (chave, valor, tipo) VALUES ('version', '1.5.2', 1);
+INSERT INTO usuarios (login, nome, sobrenome, senha, ult_acesso, status, session_id)
+  VALUES ('admin', 'Admin', 'Istrador', 'e10adc3949ba59abbe56e057f20f883e', NULL, 1, '');
+INSERT INTO usu_grup_cargo (usuario_id, grupo_id, cargo_id)
+  SELECT id, (SELECT id FROM grupos LIMIT 1), (SELECT id FROM cargos LIMIT 1) FROM usuarios;
+INSERT INTO usu_serv (unidade_id, servico_id, usuario_id)
+  SELECT (SELECT id FROM unidades LIMIT 1), (SELECT id FROM servicos LIMIT 1), id FROM usuarios;
+INSERT INTO oauth_clients (client_id, client_secret, redirect_uri, grant_types)
+  VALUES ('novosga-client', 'novosga-secret', '', 'password refresh_token');
+EOSQL
+
+# 6. Subir o servidor
+php -S 0.0.0.0:8888 -t public
 ```
 
-Seguir exatamente o padrão de retorno JSON que os outros endpoints do AtendimentoController usam.
+### Acesso
 
-### 5.4 Adicionar botão na view da fila
+| URL | Descrição |
+|-----|-----------|
+| http://localhost:8888 | Aplicação (login: `admin` / `123456`) |
+| http://localhost:8888/painel/ | Painel TV (pressione `C` para configurar) |
+| http://localhost:8888/api/ | API REST (OAuth2) |
 
-Na view que exibe a fila de espera do módulo Atendimento, adicionar para cada senha na lista um botão "Chamar esta" que só aparece quando a configuração `permitir_chamar_senha_direta` estiver ativa. O botão deve fazer POST via AJAX para o novo endpoint.
+### Configuração do Banco
 
----
-
-## ETAPA 6 — Melhoria: Rechamar senha (chamar novamente qualquer senha recente)
-
-Adicionar a capacidade de rechamar qualquer senha que foi chamada nas últimas 2 horas, não apenas a última chamada.
-
-### 6.1 No MonitorBundle ou AtendimentoBundle
-
-Criar endpoint:
-
-```
-POST /atendimento/rechamar/{id}
-```
-
-Que republica o evento de chamada da senha para o painel, sem alterar o status dela.
-
-### 6.2 Na view
-
-Exibir na área de "histórico de chamadas" (se existir) um botão "Rechamar" por senha.
-
----
-
-## ETAPA 7 — Melhoria: API para chamar senha externamente
-
-O sistema já tem uma `ApiBundle` com OAuth2. Adicionar endpoint REST para que sistemas externos (como outro sistema do cartório) possam chamar uma senha via API.
-
-### 7.1 Localizar o ApiBundle
-
-Leia todos os controllers e rotas de `src/NovoSGA/ApiBundle/`.
-
-### 7.2 Adicionar rota de chamada de senha
-
-```
-POST /api/v1/atendimentos/{id}/chamar
-```
-
-Autenticação: Bearer token OAuth2 (padrão já existente no ApiBundle).
-
-Retorno JSON:
-
-```json
-{
-  "success": true,
-  "senha": "A001",
-  "guiche": "01",
-  "chamadaEm": "2026-03-24T10:00:00"
-}
-```
-
-Reaproveitar a mesma lógica do AtendimentoController, sem duplicar código — extrair para um Service se necessário.
-
----
-
-## ETAPA 8 — Melhoria: Campo "nome do cliente" opcional no Atendimento
-
-Adicionar a possibilidade de informar o nome do cliente no momento de chamar a senha (ou no início do atendimento).
-
-### 8.1 Na entidade Atendimento
-
-Verificar se já existe campo `nomeCliente` ou similar. Se não existir, adicionar:
+Arquivo `config/database.php`:
 
 ```php
-/**
- * @ORM\Column(name="nome_cliente", type="string", length=100, nullable=true)
- */
-private $nomeCliente;
-```
-
-Gerar migration e atualizar schema.
-
-### 8.2 No painel de atendimento
-
-Exibir um campo de texto opcional "Nome do cliente" logo antes ou após chamar a senha. O preenchimento deve ser opcional — não bloquear o fluxo.
-
-### 8.3 No Monitor
-
-Se o campo estiver preenchido, exibir o nome junto à senha no monitor interno (não no painel TV, apenas no monitor do atendente).
-
----
-
-## ETAPA 9 — Melhoria: Painel TV com auto-refresh via SSE
-
-O painel atual usa polling (requisições periódicas). Melhorar para usar **Server-Sent Events (SSE)** para atualização em tempo real.
-
-### 9.1 Criar endpoint SSE
-
-No bundle mais adequado (ApiBundle ou um novo PainelBundle), criar:
-
-```
-GET /painel/stream
-```
-
-Que retorna `Content-Type: text/event-stream` e envia evento sempre que uma senha for chamada.
-
-Formato do evento:
-
-```
-data: {"senha":"A001","guiche":"1","servico":"Atendimento Geral","chamadaEm":"10:00"}
-
-```
-
-### 9.2 Verificar se já existe mecanismo de evento
-
-Antes de implementar, verificar se o sistema já usa algum mecanismo de notificação (ex: tabela de eventos no banco, pub/sub). Adaptar em vez de criar do zero.
-
-### 9.3 No painel web (`web/painel/`)
-
-Substituir o polling por `EventSource`:
-
-```javascript
-const source = new EventSource("/painel/stream");
-source.onmessage = function (event) {
-  const data = JSON.parse(event.data);
-  exibirSenha(data);
-};
+<?php
+return array(
+    'driver'   => 'pdo_pgsql',
+    'host'     => '127.0.0.1',
+    'port'     => 5432,
+    'dbname'   => 'novosga',
+    'user'     => 'novosga',
+    'password' => 'novosga',
+    'charset'  => 'UTF8',
+);
 ```
 
 ---
 
-## ETAPA 10 — Verificação final e testes manuais
-
-Após implementar tudo, fazer checklist de verificação:
+## Fluxo de Atendimento
 
 ```
-[ ] composer install roda sem erros
-[ ] php app/console doctrine:schema:validate passa
-[ ] Aplicação sobe sem erros no app_dev.php
-[ ] Login funciona
-[ ] Emissão de senha (TriagemBundle) funciona
-[ ] Chamar próximo funciona
-[ ] Chamar senha específica funciona (quando habilitado)
-[ ] API retorna 401 sem token
-[ ] API retorna senha chamada com token válido
-[ ] Painel TV exibe a última senha chamada
-[ ] SSE recebe eventos em tempo real
-[ ] Cache limpo em prod
+SENHA_EMITIDA (1)  →  CHAMADO_PELA_MESA (2)  →  ATENDIMENTO_INICIADO (3)
+      ↑                       ↓                          ↓
+  [Triagem]              [Chamar]                   [Encerrar]
+                                                        ↓
+                              ┌─── se exigir_codificacao ───┐
+                              ↓                             ↓
+                    ATENDIMENTO_ENCERRADO (4)     ENCERRADO_CODIFICADO (8)
+                              ↓                       (finalizado)
+                        [Codificar]
+                              ↓
+                    ENCERRADO_CODIFICADO (8)
+
+Outros status: NAO_COMPARECEU (5), SENHA_CANCELADA (6), ERRO_TRIAGEM (7)
 ```
 
-Rodar:
+---
+
+## Correções de Compatibilidade (PHP 8.x)
+
+### Vendor patches (necessários após `composer install`)
+
+Estes arquivos do vendor precisam de correção manual para rodar em PHP 8.x:
+
+**`vendor/slim/slim/Slim/Http/Util.php` linha 60:**
+```php
+// DE:
+$strip = is_null($overrideStripSlashes) ? get_magic_quotes_gpc() : $overrideStripSlashes;
+// PARA:
+$strip = is_null($overrideStripSlashes) ? false : $overrideStripSlashes;
+```
+
+**`vendor/slim/views/Twig.php`:**
+- Remover bloco `Twig_Autoloader` (linhas 116-120)
+- Trocar `\Twig_Loader_Filesystem` → `\Twig\Loader\FilesystemLoader`
+- Trocar `\Twig_Environment` → `\Twig\Environment`
+- Trocar `$env->loadTemplate()` → `$env->load()`
+
+**`vendor/slim/views/TwigExtension.php`:**
+- Trocar `\Twig_Extension` → `\Twig\Extension\AbstractExtension`
+- Trocar `\Twig_SimpleFunction` → `\Twig\TwigFunction`
+- Remover método `getName()`
+
+### Correções no código-fonte
+
+| Arquivo | Correção |
+|---------|----------|
+| `src/Novosga/Twig/Extensions.php` | `\Twig_Extension` → `\Twig\Extension\AbstractExtension` |
+| `src/Novosga/Twig/SecFormat.php` | `\Twig_SimpleFilter` → `\Twig\TwigFilter`, `\Twig_Environment` → `\Twig\Environment` |
+| `src/Novosga/Twig/ResourcesFunction.php` | `\Twig_SimpleFunction` → `\Twig\TwigFunction`, `\Twig_Environment` → `\Twig\Environment` |
+| `src/Novosga/App.php` | `\Twig_Extensions_Extension_I18n` → `\Twig\Extensions\I18nExtension`, `\Twig_Extension_Debug` → `\Twig\Extension\DebugExtension` |
+| `src/Novosga/Model/AbstractAtendimento.php` | `new \DateInterval()` → `new \DateInterval('PT0S')` |
+
+---
+
+## Melhorias Implementadas
+
+### 1. Chamar Senha Específica (Etapa 5)
+
+Permite ao atendente chamar qualquer senha da fila, não apenas a próxima.
+
+- **Configuração**: Unidade > Avançado > "Permitir chamar senha específica da fila"
+- **Armazenamento**: tabela `uni_meta`, chave `permitir_chamar_senha_direta`
+- **Endpoint**: `POST /modules/sga.atendimento/chamar_especifico/{id}`
+- **Controller**: `AtendimentoController::chamar_especifico()`
+- **UI**: botão "Chamar" ao lado de cada senha na fila (com title "Chamar esta senha: AAA0001")
+
+### 2. Rechamar Senha (Etapa 6)
+
+Permite rechamar qualquer senha chamada nas últimas 2 horas, republicando no painel.
+
+- **Endpoint**: `POST /modules/sga.atendimento/rechamar/{id}`
+- **Controller**: `AtendimentoController::rechamar()`
+- **Validação**: verifica se `dataChamada` está dentro das últimas 2 horas
+
+### 3. API REST para Chamar Senha (Etapa 7)
+
+Endpoint para sistemas externos chamarem uma senha via API OAuth2.
+
+- **Endpoint**: `POST /api/atendimentos/{id}/chamar`
+- **Autenticação**: Bearer token OAuth2
+- **Parâmetros**: `local` (número do guichê)
+- **Resposta**: `{ "success": true, "senha": "AAA0001", "guiche": "01", "chamadaEm": "2026-03-24T10:00:00" }`
+- **Método**: `ApiV1::chamarSenha()`
+
+### 4. Campo Nome do Cliente (Etapa 8)
+
+Campo opcional para informar o nome do cliente durante o atendimento.
+
+- **Campo já existia**: `AbstractAtendimento::$nomeCliente` (coluna `nm_cli`)
+- **Novo endpoint**: `POST /modules/sga.atendimento/salvar_nome_cliente`
+- **UI**: campo de texto + botão "Salvar" na tela de atendimento (status 2)
+
+### 5. Painel TV com Polling (Etapa 9)
+
+Painel de senhas para TV/monitor com atualização automática.
+
+- **Página**: `public/painel/index.html`
+- **Endpoint**: `GET /api/painel/{unidade}/latest?servicos=1,2,3&lastId=0`
+- **Atualização**: polling a cada 2 segundos (compatível com PHP built-in server)
+- **Configuração**: pressionar tecla `C` para definir unidade e serviços
+- **Interface**: senha atual em destaque + histórico de chamadas anteriores
+
+### 6. Codificação Opcional (Etapa extra)
+
+Permite desabilitar a etapa de codificação de serviços ao encerrar o atendimento.
+
+- **Configuração**: Unidade > Avançado > "Exigir codificação do serviço ao encerrar"
+- **Armazenamento**: tabela `uni_meta`, chave `exigir_codificacao`
+- **Comportamento**: quando desativado, `encerrar` muda direto para status 8 (ENCERRADO_CODIFICADO) com `dataFim`, pulando a tela de seleção de serviços
+
+### 7. Cronômetro de Atendimento (Etapa extra)
+
+Timer visual no canto superior direito da tela de atendimento.
+
+- **Vermelho** "Espera": tempo desde a chegada do cliente (status 2)
+- **Verde** "Atendimento": tempo desde o início do atendimento (status 3)
+- **Amarelo** "Codificação": tempo durante a seleção de serviços (status 4)
+- **Persistência**: ao recarregar a página, o cronômetro retoma do tempo correto usando `tempoAtendimento` (segundos calculados pelo servidor)
+- **Campo JSON**: `tempoAtendimento` adicionado no `AbstractAtendimento::jsonSerialize()`
+
+### 8. Correção de Senhas Duplicadas (Etapa extra)
+
+Reescrita da transação de geração de senhas para eliminar race conditions.
+
+**Problema original:**
+- Número da senha calculado fora da transação
+- `SELECT` do último número por serviço sem lock
+- `commit()` antes de `flush()` (invertido)
+- Retry por `OptimisticLockException` com lock pessimista (contraditório)
+
+**Solução:**
+- `SELECT FOR UPDATE` nativo no contador da unidade
+- Cálculo do `numeroSenha` e `numeroSenhaServico` dentro da transação
+- `flush()` antes de `commit()`
+- `em->clear()` após rollback
+
+### 9. Sigla de 3 Caracteres (Etapa extra)
+
+Expansão da sigla da senha de 1 para 3 caracteres (ex: `AAA0001`).
+
+**Alterações no banco:**
+```sql
+ALTER TABLE uni_serv ALTER COLUMN sigla TYPE varchar(3);
+-- Para atendimentos e historico: dropar views, alterar, recriar views
+-- (ver script na seção de instalação)
+ALTER TABLE painel_senha ALTER COLUMN sig_senha TYPE varchar(3);
+```
+
+**Alterações no código:**
+- `AbstractAtendimento`: annotation `length=1` → `length=3`
+- `ServicoUnidade`: annotation `length=1` → `length=3`
+- `PainelSenha`: annotation `length=1` → `length=3`
+- `Senha::setSigla()`: aceita 1 a 3 caracteres
+- `Senha::LENGTH`: 3 → 4 (dígitos do número)
+- View da unidade: `maxlength="3"`, CSS com fonte maior
+
+---
+
+## Configurações por Unidade (tabela uni_meta)
+
+| Chave | Tipo | Default | Descrição |
+|-------|------|---------|-----------|
+| `permitir_chamar_senha_direta` | `0`/`1` | `0` | Habilita botão "Chamar" na fila |
+| `exigir_codificacao` | `0`/`1` | `1` | Exige seleção de serviços ao encerrar |
+
+Gerenciadas em: **Unidade > aba Avançado**
+
+---
+
+## API REST
+
+### Autenticação
 
 ```bash
-php app/console cache:clear --env=prod --no-debug
-php app/console assets:install web --symlink
+# Obter token
+curl -X POST http://localhost:8888/api/token \
+  -d "grant_type=password&username=admin&password=123456&client_id=novosga-client&client_secret=novosga-secret"
 ```
 
+### Endpoints
+
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| GET | `/api/unidades` | Não | Listar unidades |
+| GET | `/api/servicos(/:unidade)` | Não | Listar serviços |
+| GET | `/api/prioridades` | Não | Listar prioridades |
+| GET | `/api/painel/:unidade?servicos=1,2` | Não | Senhas do painel |
+| GET | `/api/painel/:unidade/latest?servicos=1&lastId=0` | Não | Polling do painel TV |
+| POST | `/api/distribui` | Bearer | Emitir nova senha |
+| POST | `/api/atendimentos/:id/chamar` | Bearer | Chamar senha específica |
+| GET | `/api/atendimento/:id` | Bearer | Visualizar atendimento |
+| GET | `/api/fila/usuario/:unidade/:usuario` | Não | Fila do usuário |
+| POST | `/api/token` | Não | Obter token OAuth2 |
+
 ---
 
-## Observações gerais para implementação
+## Observações Importantes
 
-- **Idioma do código**: variáveis, métodos e comentários em **português**, exceto chaves de API JSON
-- **Não duplicar lógica**: sempre verificar se já existe um Service ou método que faz o que precisa antes de criar novo
-- **Padrão Symfony 3**: usar injeção de dependência via container, anotações de rota `@Route`, formulários com FormType, eventos com EventDispatcher
-- **Não quebrar fluxo existente**: as melhorias são aditivas — o sistema original deve continuar funcionando como estava
-- **Segurança**: toda ação de chamar senha deve verificar se o usuário logado tem permissão na unidade atual
-- **PostgreSQL**: não usar funções ou sintaxe exclusiva de MySQL. Usar Doctrine DBAL/ORM sempre que possível
-
----
-
-## Resultado esperado
-
-Ao final, o projeto deve:
-
-- Rodar em PHP 7.4 com PostgreSQL
-- Ter o fluxo original 100% funcional
-- Permitir chamar senha específica da fila (quando habilitado por configuração)
-- Ter API REST para integração externa
-- Ter painel TV com atualização via SSE
-- Código limpo, sem erros de depreciação no log
+- **Limpar cache**: ao alterar templates Twig, executar `rm -rf var/cache/*`
+- **Vendor patches**: após `composer install`, reaplicar os patches em `vendor/slim/`
+- **Senha admin**: MD5 de `123456` = `e10adc3949ba59abbe56e057f20f883e`
+- **Schema do banco**: usar o script SQL nativo (`src/Novosga/Install/sql/create/pgsql.sql`), não o `doctrine:schema:create` (este não cria sequences/serial corretamente)
+- **PHP built-in server**: single-threaded, não usar SSE/long-polling (usar polling)
+- **Idioma do código**: variáveis e métodos em português
