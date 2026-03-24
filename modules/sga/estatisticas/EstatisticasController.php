@@ -3,6 +3,7 @@
 namespace modules\sga\estatisticas;
 
 use Exception;
+use Mpdf\Mpdf;
 use Novosga\App;
 use Novosga\Context;
 use Novosga\Service\AtendimentoService;
@@ -121,49 +122,153 @@ class EstatisticasController extends ModuleController
         return $response;
     }
 
-    public function relatorio(Context $context)
+    /**
+     * Prepara os dados do relatório a partir dos parâmetros da request.
+     */
+    private function prepararRelatorio(Context $context)
     {
         $id = (int) $context->request()->get('relatorio');
         $dataInicial = $context->request()->get('inicial');
         $dataFinal = $context->request()->get('final');
         $unidade = (int) $context->request()->get('unidade');
         $unidade = ($unidade > 0) ? $unidade : 0;
-        if (isset($this->relatorios[$id])) {
-            $relatorio = $this->relatorios[$id];
-            $this->app()->view()->set('dataInicial', DateUtil::format($dataInicial, _('d/m/Y')));
-            $this->app()->view()->set('dataFinal', DateUtil::format($dataFinal, _('d/m/Y')));
-            $dataFinal = $dataFinal.' 23:59:59';
-            switch ($id) {
-            case 1:
-                $relatorio->setDados($this->servicos_disponiveis_global());
-                break;
-            case 2:
-                $relatorio->setDados($this->servicos_disponiveis_unidade($unidade));
-                break;
-            case 3:
-                $relatorio->setDados($this->servicos_codificados($dataInicial, $dataFinal, $unidade));
-                break;
-            case 4:
-                $relatorio->setDados($this->atendimentos_concluidos($dataInicial, $dataFinal, $unidade));
-                break;
-            case 5:
-                $relatorio->setDados($this->atendimentos_status($dataInicial, $dataFinal, $unidade));
-                break;
-            case 6:
-                $relatorio->setDados($this->tempo_medio_atendentes($dataInicial, $dataFinal));
-                break;
-            case 7:
-                $servico = $context->request()->get('servico');
-                $relatorio->setDados($this->lotacoes($unidade, $servico));
-                break;
-            case 8:
-                $relatorio->setDados($this->cargos());
-                break;
-            }
-            $this->app()->view()->set('relatorio', $relatorio);
+        if (!isset($this->relatorios[$id])) {
+            throw new Exception(_('Relatório inválido'));
         }
-        $this->app()->view()->set('page', "relatorios/{$relatorio->getArquivo()}.html.twig");
-        $this->app()->view()->set('isNumeracaoServico', AtendimentoService::isNumeracaoServico());
+        $relatorio = $this->relatorios[$id];
+        $dataInicialFmt = DateUtil::format($dataInicial, _('d/m/Y'));
+        $dataFinalFmt = DateUtil::format($dataFinal, _('d/m/Y'));
+        $dataFinalSql = $dataFinal.' 23:59:59';
+        switch ($id) {
+        case 1:
+            $relatorio->setDados($this->servicos_disponiveis_global());
+            break;
+        case 2:
+            $relatorio->setDados($this->servicos_disponiveis_unidade($unidade));
+            break;
+        case 3:
+            $relatorio->setDados($this->servicos_codificados($dataInicial, $dataFinalSql, $unidade));
+            break;
+        case 4:
+            $relatorio->setDados($this->atendimentos_concluidos($dataInicial, $dataFinalSql, $unidade));
+            break;
+        case 5:
+            $relatorio->setDados($this->atendimentos_status($dataInicial, $dataFinalSql, $unidade));
+            break;
+        case 6:
+            $relatorio->setDados($this->tempo_medio_atendentes($dataInicial, $dataFinalSql));
+            break;
+        case 7:
+            $servico = $context->request()->get('servico');
+            $relatorio->setDados($this->lotacoes($unidade, $servico));
+            break;
+        case 8:
+            $relatorio->setDados($this->cargos());
+            break;
+        }
+        return [
+            'relatorio' => $relatorio,
+            'dataInicial' => $dataInicialFmt,
+            'dataFinal' => $dataFinalFmt,
+            'page' => "relatorios/{$relatorio->getArquivo()}.html.twig",
+            'isNumeracaoServico' => AtendimentoService::isNumeracaoServico(),
+        ];
+    }
+
+    public function relatorio(Context $context)
+    {
+        $dados = $this->prepararRelatorio($context);
+        $this->app()->view()->set('relatorio', $dados['relatorio']);
+        $this->app()->view()->set('dataInicial', $dados['dataInicial']);
+        $this->app()->view()->set('dataFinal', $dados['dataFinal']);
+        $this->app()->view()->set('page', $dados['page']);
+        $this->app()->view()->set('isNumeracaoServico', $dados['isNumeracaoServico']);
+    }
+
+    public function relatorio_pdf(Context $context)
+    {
+        $dados = $this->prepararRelatorio($context);
+        $relatorio = $dados['relatorio'];
+
+        // Renderizar o conteúdo do relatório via Twig
+        $moduleDir = MODULES_PATH . '/sga/estatisticas/views';
+        $loader = new \Twig\Loader\FilesystemLoader([$moduleDir, NOVOSGA_TEMPLATES]);
+        $twig = new \Twig\Environment($loader);
+        $twig->addExtension(new \Twig\Extensions\I18nExtension());
+        $twig->addExtension(new \Novosga\Twig\Extensions());
+
+        $vars = [
+            'relatorio' => $relatorio,
+            'dataInicial' => $dados['dataInicial'],
+            'dataFinal' => $dados['dataFinal'],
+            'isNumeracaoServico' => $dados['isNumeracaoServico'],
+            'version' => App::VERSION,
+            'module' => $context->getModulo(),
+        ];
+
+        $bodyHtml = $twig->render($dados['page'], $vars);
+
+        // Gerar PDF com mPDF
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4-L',
+            'margin_top' => 25,
+            'margin_bottom' => 20,
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_header' => 5,
+            'margin_footer' => 5,
+            'tempDir' => NOVOSGA_ROOT . '/var/cache',
+        ]);
+
+        $mpdf->SetHTMLHeader('
+            <table width="100%" style="border-bottom: 1px solid #999; margin-bottom: 5px;">
+                <tr>
+                    <td style="font-size: 14pt; font-weight: bold; color: #333;">
+                        Novo SGA - ' . htmlspecialchars($relatorio->getTitulo()) . '
+                    </td>
+                    <td style="text-align: right; font-size: 9pt; color: #666;">
+                        ' . date('d/m/Y H:i') . '
+                    </td>
+                </tr>
+            </table>
+        ');
+
+        $mpdf->SetHTMLFooter('
+            <table width="100%" style="border-top: 1px solid #999; padding-top: 3px;">
+                <tr>
+                    <td style="font-size: 8pt; color: #666;">
+                        Novo SGA v' . App::VERSION . '
+                    </td>
+                    <td style="text-align: center; font-size: 8pt; color: #666;">
+                        ' . htmlspecialchars($relatorio->getTitulo()) . '
+                    </td>
+                    <td style="text-align: right; font-size: 8pt; color: #666;">
+                        Pág. {PAGENO}/{nbpg}
+                    </td>
+                </tr>
+            </table>
+        ');
+
+        $css = '
+            body { font-family: sans-serif; font-size: 10pt; color: #333; }
+            h2 { font-size: 13pt; color: #444; margin: 10px 0 5px; }
+            .header { text-align: center; margin-bottom: 10px; }
+            .header p { font-size: 9pt; color: #666; }
+            table.table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+            table.table th { background-color: #f5f5f5; border: 1px solid #ddd; padding: 6px 8px; font-size: 9pt; text-align: left; }
+            table.table td { border: 1px solid #ddd; padding: 5px 8px; font-size: 9pt; }
+            table.table tfoot td { font-weight: bold; background-color: #f9f9f9; }
+            .strong { font-weight: bold; }
+            .sub-table { padding: 0 !important; }
+            .sub-table table { margin: 0; }
+        ';
+
+        $mpdf->WriteHTML('<style>' . $css . '</style>' . $bodyHtml);
+
+        $filename = 'relatorio-' . $relatorio->getArquivo() . '-' . date('Y-m-d-His') . '.pdf';
+        $mpdf->Output($filename, \Mpdf\Output\Destination::DOWNLOAD);
+        exit;
     }
 
     private function unidades()

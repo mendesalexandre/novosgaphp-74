@@ -174,20 +174,36 @@ SGA.Estatisticas = {
     },
     
     Relatorio: {
-        
+
         gerar: function() {
             $('#report-hidden-inicial').val(SGA.dateToSql($('#report-dataInicial').val()));
             $('#report-hidden-final').val(SGA.dateToSql($('#report-dataFinal').val()));
             return true;
         },
-        
+
+        gerarPdf: function() {
+            var id = $('#report-id').val();
+            if (!id || id <= 0) {
+                alert('Selecione um relatório');
+                return;
+            }
+            var params = {
+                relatorio: id,
+                unidade: ($('#report-unidade').prop('disabled') ? 0 : $('#report-unidade').val()),
+                inicial: SGA.dateToSql($('#report-dataInicial').val()),
+                'final': SGA.dateToSql($('#report-dataFinal').val())
+            };
+            var query = $.param(params);
+            window.open(SGA.url('relatorio_pdf') + '?' + query, '_blank');
+        },
+
         change: function(elem) {
             if (elem.val() > 0) {
                 // desabilitando as opções
                 SGA.Estatisticas.options('#tab-relatorios');
             }
         }
-        
+
     }
     
 };
