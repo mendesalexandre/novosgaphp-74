@@ -1,7 +1,5 @@
 /**
- * Novo SGA - Atendimento
- * icon(s) by pixel-mixer.com
- * @author Rogerio Lino <rogeriolino@gmail.com>
+ * Novo SGA - Atendimento (Modernizado)
  */
 
 .module-content .header {
@@ -10,15 +8,18 @@
 
 #atendimento {
     position: relative;
+    padding: 0 10px;
 }
 
-/* local */
+/* ===== Guichê ===== */
 
 #atendimento #local {
     min-width: 130px;
-    height: 150px;
-    background-color: #F8CA00;
-    border-bottom: 3px solid #333;
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    border-radius: 10px;
+    padding: 15px 10px;
+    color: #fff;
+    text-align: center;
 }
 
 #atendimento #local span {
@@ -29,42 +30,55 @@
 }
 
 #atendimento #local .label-local {
-    padding-top: 10px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
     padding-bottom: 5px;
-    line-height: 14px;
 }
 
 #atendimento #local .numero {
-    font-size: 80px;
-    line-height: 80px;
-    padding: 5px 0;
+    font-size: 60px;
+    line-height: 65px;
+    color: #fff;
 }
 
 #atendimento #local a {
-    color: #666;
-    bottom: 10px;
+    color: rgba(255,255,255,0.5);
     width: 100%;
     font-size: 12px;
     text-align: center;
     display: block;
+    margin-top: 5px;
 }
 
-#atendimento #local a:hover { color: #000; }
+#atendimento #local a:hover { color: #fff; text-decoration: none; }
 
-/* controls */
+/* ===== Controles ===== */
 
 #atendimento #controls {
-    min-height: 300px;
+    min-height: 250px;
 }
 
 #atendimento #controls .btn-control {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    transition: all 0.15s ease;
+    margin-bottom: 8px;
+}
+
+#atendimento #controls .btn-control:hover {
+    background: #f8f8f8;
 }
 
 #atendimento #controls .btn-control span {
-    padding-top: 60px;
-    background-position: center 5px;
+    padding-top: 55px;
+    background-position: center 8px;
     background-repeat: no-repeat;
     display: block;
+    font-weight: 500;
+    color: #444;
 }
 
 #atendimento #controls .btn-control.chamar span,
@@ -77,19 +91,104 @@
 #atendimento #controls .btn-control.erro_triagem span { background-image: url(../images/icon-errotriagem.png); }
 
 #atendimento #chamar .row {
-    padding-top: 20px;
+    padding-top: 15px;
 }
+
+/* Botão chamar próximo */
+#atendimento #chamar .chamar {
+    background: #3498db;
+    border-color: #3498db;
+    color: #fff;
+    font-size: 15px;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+#atendimento #chamar .chamar span {
+    padding-top: 0;
+    color: #fff;
+    font-size: 16px;
+    background: none;
+}
+
+#atendimento #chamar .chamar:disabled {
+    background: #bdc3c7;
+    border-color: #bdc3c7;
+}
+
+/* ===== Info do atendimento ===== */
+
+#atendimento #controls .senha .title {
+    padding: 8px 15px;
+    margin: 0;
+    font-size: 16px;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+#atendimento #controls .senha .info {
+    padding: 15px 20px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    border: 1px solid #e8e8e8;
+    margin-bottom: 10px;
+}
+
+#atendimento #controls .senha .info li {
+    list-style: none;
+    padding: 5px 0;
+    display: block;
+    border-bottom: 1px solid #eee;
+}
+
+#atendimento #controls .senha .info li:last-child {
+    border-bottom: none;
+}
+
+#atendimento #controls .senha .info li .atend-label {
+    width: 100px;
+    float: left;
+    color: #999;
+    font-size: 13px;
+}
+
+#atendimento #controls .senha .info li .atend-value {
+    color: #333;
+}
+
+#atendimento #controls .senha .info li.numero .atend-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+#atendimento #controls .senha .info.prioridade {
+    border-left: 4px solid #e74c3c;
+}
+
+#atendimento #controls .senha .info.prioridade li.numero .atend-value {
+    color: #e74c3c;
+}
+
+#atendimento #controls .senha .info.prioridade li.nome-prioridade .atend-value {
+    font-weight: bold;
+    color: #e74c3c;
+}
+
+/* ===== Codificar ===== */
 
 #atendimento #controls #codificar h3 {
     padding-bottom: 10px;
     margin: 0;
+    font-size: 15px;
+    color: #555;
 }
 
 #atendimento #controls #codificar .items {
     padding: 10px;
-    border-radius: 3px;
-    background-color: #F7F9FE;
-    border: 1px solid #E1E1E8;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    border: 1px solid #e8e8e8;
     list-style-position: inside;
 }
 
@@ -113,52 +212,19 @@
     margin-right: 5px;
 }
 
-/* controls - atendimento info */
-
-#atendimento #controls .senha {
-}
-
-#atendimento #controls .senha .title {
-    padding: 5px 10px;
-    margin: 0;
-}
-
-#atendimento #controls .senha .info {
-    padding: 15px 20px;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-    background-color: #f9f9f9;
-    border: 1px solid #e1e1e8;
-}
-
-#atendimento #controls .senha .info li {
-    list-style: none;
-    padding: 3px 0;
-    display: block;
-}
-
-#atendimento #controls .senha .info li .atend-label {
-    width: 100px;
-    float: left;
-}
-
-#atendimento #controls .senha .info li.numero .atend-value {
-    font-size: 30px;
-    font-weight: bold;
-}
-
-#atendimento #controls .senha .info.prioridade li.nome-prioridade .value { font-weight: bold }
-
-/* fila */
+/* ===== Fila ===== */
 
 #atendimento #fila {
     clear: both;
+    margin-top: 20px;
 }
 
 #atendimento #fila h4 {
-    padding: 5px 0 5px 10px;
+    padding: 8px 0 8px 5px;
     display: block;
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
 }
 
 #atendimento #fila h4 span {
@@ -166,41 +232,67 @@
 }
 
 #atendimento #fila span.tipo-1 { } /* todos */
-#atendimento #fila span.tipo-2 { color: blue; } /* convencional */ 
-#atendimento #fila span.tipo-3 { color: red; } /* prioridade */
+#atendimento #fila span.tipo-2 { color: #3498db; } /* convencional */
+#atendimento #fila span.tipo-3 { color: #e74c3c; } /* prioridade */
 
 #atendimento #fila ul {
-    min-height: 40px;
-    padding: 0 0 10px 45px;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-    background-color: #F7F9FE;
-    background-image: url(../images/client-16.png);
-    background-position: 20px center;
-    background-repeat: no-repeat;
-    border: 1px solid #e1e1e8;
+    min-height: 50px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    border: 1px solid #e8e8e8;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
 }
-    
+
 #atendimento #fila ul li {
     list-style: none;
-    display: inline;
-    padding: 12px 6px 0 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#atendimento #fila ul li a {
     display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: #fff;
+    border: 1px solid #ddd;
+    color: #333;
+    font-weight: 500;
+    text-decoration: none;
+    font-size: 14px;
 }
 
-#atendimento #fila ul li .proximo {
-    font-size: 20px;
+#atendimento #fila ul li a.proximo {
+    font-size: 18px;
+    background: #eaf4fe;
+    border-color: #3498db;
+    color: #2980b9;
+    font-weight: bold;
 }
 
-#atendimento #fila ul li .prioridade {
-    color: #ff3300;
+#atendimento #fila ul li a.prioridade {
+    color: #e74c3c;
+    border-color: #e74c3c;
+    background: #fdf2f2;
 }
 
 #atendimento #fila ul li.empty {
     color: #999;
     font-style: italic;
-    padding-top: 15px;
+    padding: 10px;
+    width: 100%;
+    text-align: center;
+}
+
+/* Botão chamar direto na fila */
+#atendimento #fila .btn-chamar-direto {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 3px;
 }
 
 p.links {
@@ -213,7 +305,7 @@ p.links a {
     margin: 0 5px;
 }
 
-/* cronometro */
+/* ===== Cronômetro ===== */
 
 #cronometro-container {
     position: fixed;
@@ -226,7 +318,7 @@ p.links a {
     background: #333;
     color: #fff;
     padding: 8px 18px;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 14px;
     display: flex;
     align-items: center;
@@ -251,17 +343,19 @@ p.links a {
 }
 
 #cronometro.cronometro-espera {
-    background: #d9534f;
+    background: #e74c3c;
 }
 
 #cronometro.cronometro-atendimento {
-    background: #5cb85c;
+    background: #27ae60;
 }
 
 #cronometro.cronometro-encerramento {
-    background: #f0ad4e;
+    background: #f39c12;
     color: #333;
 }
+
+/* ===== Modais ===== */
 
 #dialog-busca .modal-dialog {
     width: 90%;
