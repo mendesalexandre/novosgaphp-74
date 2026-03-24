@@ -291,6 +291,9 @@ angular
     };
 
     $scope.servicosIds = function () {
+      if (!$scope.config.servicos || !Array.isArray($scope.config.servicos)) {
+        return [];
+      }
       return $scope.config.servicos.map(function (s) {
         return s.id ? s.id : parseInt(s);
       });
@@ -489,7 +492,7 @@ var PainelWeb = {
         $scope.config.theme = PainelWeb.Storage.get("theme");
         $scope.config.url = PainelWeb.Storage.get("url");
         $scope.config.unidade = JSON.parse(PainelWeb.Storage.get("unidade"));
-        $scope.config.servicos = JSON.parse(PainelWeb.Storage.get("servicos"));
+        $scope.config.servicos = JSON.parse(PainelWeb.Storage.get("servicos")) || [];
         $scope.config.lang = PainelWeb.Storage.get("lang");
         $scope.config.alert = PainelWeb.Storage.get("alert");
         $scope.config.vocalizar = PainelWeb.Storage.get("vocalizar") === "1";
