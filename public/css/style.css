@@ -171,9 +171,6 @@ body {
 }
 
 #home .module-card:hover {
-    border-color: #3498db;
-    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
-    transform: translateY(-2px);
     text-decoration: none;
     color: #333;
 }
