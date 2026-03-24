@@ -28,7 +28,7 @@ namespace Novosga\Model;
     protected $numeroSenha;
 
     /**
-     * @Column(type="string", name="sig_senha", length=1, nullable=false)
+     * @Column(type="string", name="sig_senha", length=3, nullable=false)
      */
     protected $siglaSenha;
 

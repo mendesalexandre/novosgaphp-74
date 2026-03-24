@@ -11,7 +11,7 @@ use Novosga\Model\Prioridade;
   */
  class Senha extends Model
  {
-     const LENGTH = 3;
+     const LENGTH = 4;
      const TIPO_NUMERACAO = 'numeracao';
      const NUMERACAO_UNICA = 1;
      const NUMERACAO_SERVICO = 2;
@@ -31,10 +31,10 @@ use Novosga\Model\Prioridade;
      */
     public function setSigla($sigla)
     {
-        if (is_string($sigla) && strlen($sigla) == 1) {
+        if (is_string($sigla) && strlen($sigla) >= 1 && strlen($sigla) <= 3) {
             $this->sigla = $sigla;
         } else {
-            throw new \Exception(_('A sigla da senha deve ser um char'));
+            throw new \Exception(_('A sigla da senha deve ter entre 1 e 3 caracteres'));
         }
     }
 

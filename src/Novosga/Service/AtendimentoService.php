@@ -445,18 +445,6 @@ class AtendimentoService extends MetaModelService
             throw new Exception(_('Serviço não disponível para a unidade atual'));
         }
 
-        $contador = $this->em->find('Novosga\Model\Contador', $unidade);
-        if (!$contador) {
-            $contador = new Contador();
-            $contador->setUnidade($unidade);
-            $contador->setTotal(0);
-            $this->em->persist($contador);
-            $this->em->flush();
-        }
-
-        $numeroSenha = $contador->getTotal() + 1;
-        $contador->setTotal($numeroSenha);
-
         $atendimento = new Atendimento();
         $atendimento->setServicoUnidade($su);
         $atendimento->setPrioridade($prioridade);
@@ -469,60 +457,59 @@ class AtendimentoService extends MetaModelService
 
         AppConfig::getInstance()->hook('attending.pre-create', array($atendimento));
 
-        $this->em->beginTransaction();
-        
+        $conn = $this->em->getConnection();
+        $conn->beginTransaction();
+
         try {
-            $attempts = 5;
-            $this->em->lock($contador, LockMode::PESSIMISTIC_WRITE);
-            do {
-                try {
-                    // ultimo numero gerado (servico). busca pela sigla do servico para nao aparecer duplicada (em caso de mais de um servico com a mesma sigla)
-                    try {
-                        $numeroSenhaServico = (int) $this->em->createQuery('
-                                SELECT
-                                    e.numeroSenhaServico
-                                FROM
-                                    Novosga\Model\Atendimento e
-                                    JOIN e.servicoUnidade su
-                                WHERE
-                                    su.unidade = :unidade AND
-                                    e.siglaSenha = :sigla
-                                ORDER BY
-                                    e.numeroSenhaServico DESC
-                            ')
-                                ->setParameter('unidade', $unidade)
-                                ->setParameter('sigla', $su->getSigla())
-                                ->setMaxResults(1)
-                                ->getSingleScalarResult()
-                        ;
-                    } catch (Exception $e) {
-                        $numeroSenhaServico = 0;
-                    }
+            // lock exclusivo no contador da unidade via SQL nativo (SELECT FOR UPDATE)
+            $contadorTable = $this->em->getClassMetadata('Novosga\Model\Contador')->getTableName();
+            $stmt = $conn->prepare("SELECT total FROM {$contadorTable} WHERE unidade_id = :unidade FOR UPDATE");
+            $stmt->bindValue('unidade', $unidade->getId(), \PDO::PARAM_INT);
+            $stmt->execute();
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-                    $atendimento->setDataChegada(new DateTime());
-                    $atendimento->setNumeroSenha($numeroSenha);
-                    $atendimento->setNumeroSenhaServico($numeroSenhaServico + 1);
-
-                    $this->em->persist($atendimento);
-                    $this->em->merge($contador);
-                    $this->em->commit();
-                    $this->em->flush();
-                    break;
-                } catch (OptimisticLockException $e) {
-                    --$attempts;
-                    if ($attempts <= 0) {
-                        throw $e;
-                    }
-                    usleep(100);
-                }
-            } while ($attempts > 0);
-
-            if ($attempts === 0) {
-                throw new Exception(_('Erro ao tentar gerar nova senha'));
+            if (!$row) {
+                // cria o contador se nao existir, ainda dentro da transacao
+                $conn->insert($contadorTable, array(
+                    'unidade_id' => $unidade->getId(),
+                    'total' => 0,
+                ));
+                $totalAtual = 0;
+            } else {
+                $totalAtual = (int) $row['total'];
             }
 
+            $numeroSenha = $totalAtual + 1;
+
+            // atualiza o contador atomicamente
+            $conn->update(
+                $contadorTable,
+                array('total' => $numeroSenha),
+                array('unidade_id' => $unidade->getId())
+            );
+
+            // busca ultimo numero do servico (pela sigla) dentro da transacao
+            $atendimentoTable = $this->em->getClassMetadata('Novosga\Model\Atendimento')->getTableName();
+            $stmt = $conn->prepare("
+                SELECT COALESCE(MAX(a.num_senha_serv), 0) as ultimo
+                FROM {$atendimentoTable} a
+                WHERE a.unidade_id = :unidade AND a.sigla_senha = :sigla
+            ");
+            $stmt->bindValue('unidade', $unidade->getId(), \PDO::PARAM_INT);
+            $stmt->bindValue('sigla', $su->getSigla());
+            $stmt->execute();
+            $numeroSenhaServico = (int) $stmt->fetchColumn();
+
+            $atendimento->setDataChegada(new DateTime());
+            $atendimento->setNumeroSenha($numeroSenha);
+            $atendimento->setNumeroSenhaServico($numeroSenhaServico + 1);
+
+            $this->em->persist($atendimento);
+            $this->em->flush();
+            $conn->commit();
+
             if (!$atendimento || !$atendimento->getId()) {
-                throw new \Exception(sprintf(_('O último ID retornado pelo banco não é de um atendimento válido: %s'), $id));
+                throw new Exception(_('Erro ao gerar nova senha'));
             }
 
             AppConfig::getInstance()->hook('attending.create', $atendimento);
@@ -530,9 +517,11 @@ class AtendimentoService extends MetaModelService
             return $atendimento;
         } catch (Exception $e) {
             try {
-                $this->em->rollback();
+                $conn->rollBack();
             } catch (Exception $ex) {
             }
+            // limpa o entity manager apos rollback para evitar estado inconsistente
+            $this->em->clear();
             throw $e;
         }
     }
