@@ -76,9 +76,9 @@ SGA.Atendimento = {
         }
     },
 
-    init: function(status) {
+    init: function(status, atendimento) {
         SGA.Atendimento.ajaxUpdate();
-        SGA.Atendimento.updateControls(status);
+        SGA.Atendimento.updateControls(status, atendimento);
         $('#dialog-busca').on('show.bs.modal', function () {
             $('#numero_busca').val('');
             $('#result_table tbody').html('');

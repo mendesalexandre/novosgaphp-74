@@ -398,7 +398,7 @@
             SGA.Atendimento.tiposAtendimento = {{ tiposAtendimento|json_encode()|raw }};
             SGA.Atendimento.permitirChamarDireta = {{ permitirChamarDireta ? 'true' : 'false' }};
             SGA.Atendimento.exigirCodificacao = {{ exigirCodificacao ? 'true' : 'false' }};
-            SGA.Atendimento.init({% if atendimento %}{{ atendimento.status }}{% else %}1{% endif %});
+            SGA.Atendimento.init({% if atendimento %}{{ atendimento.status }}, {{ atendimento.jsonSerialize()|json_encode()|raw }}{% else %}1, null{% endif %});
         </script>
     {% endif %}
 {% endblock %}
