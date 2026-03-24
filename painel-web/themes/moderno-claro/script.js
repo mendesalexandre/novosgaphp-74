@@ -333,7 +333,10 @@
                 switch (widget.type) {
                     case 'audio':
                     case 'video':
-                        widget.elem.find(widget.type).prop('volume', volume / 100);
+                        var mediaEl = widget.elem.find(widget.type);
+                        mediaEl.prop('volume', volume / 100);
+                        mediaEl.prop('muted', true);
+                        if (mediaEl[0]) mediaEl[0].muted = true;
                         break;
                     case 'youtube':
                         var player = Youtube.players[widget.index];
