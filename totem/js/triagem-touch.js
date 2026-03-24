@@ -94,6 +94,7 @@
             Storage.set('interface.blocked', ctrl.interface.blocked ? '1' : '0');
             Storage.set('interface.unblockKey', ctrl.interface.unblockKey);
             Storage.set('interface.print', ctrl.interface.print ? '1' : '0');
+            Storage.set('interface.simplificada', ctrl.interface.simplificada ? '1' : '0');
             
             var desabilitados = [];
             for (var i = 0; i < ctrl.servicos.length; i++) {
@@ -124,6 +125,7 @@
                 blocked: Storage.get('interface.blocked') === '1',
                 unblockKey: Storage.get('interface.unblockKey'),
                 print: Storage.get('interface.print') === '1' || Storage.get('interface.print') === null,
+                simplificada: Storage.get('interface.simplificada') === '1',
             };
             
             if (ctrl.url && ctrl.usuario && ctrl.senha && ctrl.clientId) {
@@ -177,7 +179,11 @@
         };
 
         ctrl.tipoPrioridade = function() {
-            ctrl.gotoPage('#prioridades');
+            if (ctrl.interface.simplificada && ctrl.prioridades.length > 0) {
+                ctrl.distribuiSenha(ctrl.prioridades[0].id);
+            } else {
+                ctrl.gotoPage('#prioridades');
+            }
         };
 
         ctrl.distribuiNormal = function() {
