@@ -53,10 +53,12 @@ class AtendimentoController extends ModuleController
             $usuario->setTipoAtendimento((int) $tipoMeta->getValue());
         }
 
-        // verificar configuração de chamada direta
+        // verificar configurações da unidade
         $unidadeService = new \Novosga\Service\UnidadeService($this->em());
         $meta = $unidadeService->meta($unidade, 'permitir_chamar_senha_direta');
         $permitirChamarDireta = ($meta && $meta->getValue() == '1');
+        $metaCodif = $unidadeService->meta($unidade, 'exigir_codificacao');
+        $exigirCodificacao = (!$metaCodif || $metaCodif->getValue() != '0');
 
         $this->app()->view()->set('time', time() * 1000);
         $this->app()->view()->set('unidade', $unidade);
@@ -64,6 +66,7 @@ class AtendimentoController extends ModuleController
         $this->app()->view()->set('servicos', $usuario->getServicos());
         $this->app()->view()->set('servicosIndisponiveis', $usuario->getServicosIndisponiveis());
         $this->app()->view()->set('permitirChamarDireta', $permitirChamarDireta);
+        $this->app()->view()->set('exigirCodificacao', $exigirCodificacao);
 
         $tiposAtendimento = array(
             UsuarioSessao::ATEND_TODOS => _('Todos'),
@@ -309,7 +312,18 @@ class AtendimentoController extends ModuleController
      */
     public function encerrar(Context $context)
     {
-        return $this->mudaStatusAtualResponse($context, AtendimentoService::ATENDIMENTO_INICIADO, AtendimentoService::ATENDIMENTO_ENCERRADO, null);
+        $unidade = $context->getUnidade();
+        $unidadeService = new \Novosga\Service\UnidadeService($this->em());
+        $meta = $unidadeService->meta($unidade, 'exigir_codificacao');
+        $exigir = (!$meta || $meta->getValue() != '0');
+
+        if ($exigir) {
+            // fluxo normal: encerra e abre tela de codificação
+            return $this->mudaStatusAtualResponse($context, AtendimentoService::ATENDIMENTO_INICIADO, AtendimentoService::ATENDIMENTO_ENCERRADO, null);
+        } else {
+            // pula codificação: encerra e finaliza direto
+            return $this->mudaStatusAtualResponse($context, AtendimentoService::ATENDIMENTO_INICIADO, AtendimentoService::ATENDIMENTO_ENCERRADO_CODIFICADO, 'dataFim');
+        }
     }
 
     /**

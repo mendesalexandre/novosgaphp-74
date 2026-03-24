@@ -41,7 +41,8 @@ SGA.Unidade = {
             url: SGA.url('salvar_avancado'),
             type: 'post',
             data: {
-                chamar_senha_direta: $('#chamar-senha-direta:checked').length ? '1' : '0'
+                chamar_senha_direta: $('#chamar-senha-direta:checked').length ? '1' : '0',
+                exigir_codificacao: $('#exigir-codificacao:checked').length ? '1' : '0'
             }
         });
     },

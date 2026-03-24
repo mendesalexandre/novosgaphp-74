@@ -389,6 +389,7 @@
             SGA.Atendimento.nenhumServicoSelecionado = '{% trans %}Nenhum serviço selecionado{% endtrans %}';
             SGA.Atendimento.tiposAtendimento = {{ tiposAtendimento|json_encode()|raw }};
             SGA.Atendimento.permitirChamarDireta = {{ permitirChamarDireta ? 'true' : 'false' }};
+            SGA.Atendimento.exigirCodificacao = {{ exigirCodificacao ? 'true' : 'false' }};
             SGA.Atendimento.init({% if atendimento %}{{ atendimento.status }}{% else %}1{% endif %});
         </script>
     {% endif %}

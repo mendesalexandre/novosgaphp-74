@@ -46,10 +46,13 @@ class UnidadeController extends ModuleController
             $unidadeService = new UnidadeService($this->em());
             $meta = $unidadeService->meta($unidade, 'permitir_chamar_senha_direta');
             $permitirChamarSenhaDireta = ($meta && $meta->getValue() == '1');
+            $metaCodif = $unidadeService->meta($unidade, 'exigir_codificacao');
+            $exigirCodificacao = (!$metaCodif || $metaCodif->getValue() != '0');
 
             $this->app()->view()->set('servicos', $servicos);
             $this->app()->view()->set('locais', $locais);
             $this->app()->view()->set('permitirChamarSenhaDireta', $permitirChamarSenhaDireta);
+            $this->app()->view()->set('exigirCodificacao', $exigirCodificacao);
         }
     }
 
@@ -153,8 +156,10 @@ class UnidadeController extends ModuleController
                 throw new Exception(_('Nenhuma unidade definida'));
             }
             $chamarSenhaDireta = $context->request()->post('chamar_senha_direta', '0');
+            $exigirCodificacao = $context->request()->post('exigir_codificacao', '1');
             $unidadeService = new UnidadeService($this->em());
             $unidadeService->meta($unidade, 'permitir_chamar_senha_direta', $chamarSenhaDireta);
+            $unidadeService->meta($unidade, 'exigir_codificacao', $exigirCodificacao);
             $response->success = true;
         } catch (Exception $e) {
             $response->message = $e->getMessage();

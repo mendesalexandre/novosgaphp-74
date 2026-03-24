@@ -15,6 +15,7 @@ SGA.Atendimento = {
     timeoutId: 0,
     tiposAtendimento: {},
     permitirChamarDireta: false,
+    exigirCodificacao: true,
     
     init: function(status) {
         SGA.Atendimento.ajaxUpdate();
@@ -231,9 +232,14 @@ SGA.Atendimento = {
     encerrar: function(btn) {
         SGA.Atendimento.control({
             button: btn,
-            action: 'encerrar', 
+            action: 'encerrar',
             success: function(response) {
-                SGA.Atendimento.updateControls(4, response.data)
+                if (SGA.Atendimento.exigirCodificacao) {
+                    SGA.Atendimento.updateControls(4, response.data);
+                } else {
+                    // sem codificação: backend já finalizou, volta para chamar
+                    SGA.Atendimento.updateControls(1);
+                }
             }
         });
     },

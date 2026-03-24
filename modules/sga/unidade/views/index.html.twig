@@ -121,6 +121,16 @@
                         </label>
                     </div>
                     <p class="help-block">{% trans %}Quando ativado, o atendente pode clicar em qualquer senha da fila para chamá-la diretamente, em vez de apenas chamar o próximo.{% endtrans %}</p>
+                    <hr>
+                    <div class="checkbox">
+                        <label for="exigir-codificacao">
+                            <input id="exigir-codificacao" name="exigir_codificacao" type="checkbox" value="1"
+                                   {% if exigirCodificacao %}checked="checked"{% endif %}
+                                   onclick="SGA.Unidade.salvarAvancado()" />
+                            {% trans %}Exigir codificação do serviço ao encerrar{% endtrans %}
+                        </label>
+                    </div>
+                    <p class="help-block">{% trans %}Quando desativado, o atendimento é finalizado diretamente ao encerrar, sem exigir a seleção dos serviços realizados.{% endtrans %}</p>
                 </fieldset>
             </form>
         </div>
