@@ -278,6 +278,25 @@ Gerenciadas em **Unidade > aba Avançado**:
 - Campos com ícones Bootstrap, botão com gradiente
 - Responsivo
 
+### Exportação de Relatórios em PDF (mPDF)
+- Dependência: `mpdf/mpdf v8.3` (via composer)
+- Endpoint `GET /modules/sga.estatisticas/relatorio_pdf?relatorio=N&unidade=N&inicial=YYYY-MM-DD&final=YYYY-MM-DD`
+- Cabeçalho padrão: "Novo SGA - [Título]" + data/hora da geração
+- Rodapé padrão: versão do sistema | título | "Pág. X/Y"
+- Formato A4 paisagem, CSS embutido para tabelas
+- Botão "Exportar PDF" na aba Relatórios e na página do relatório HTML
+- Usa `var/cache` como diretório temporário do mPDF
+
+### Correções no Módulo de Atendimento
+- Removido botão "Chamar novamente" do painel após iniciar atendimento (status 3)
+- Botões "Encerrar" e "Erro de triagem" agora ocupam 50/50 da largura
+- Corrigido scroll para o topo causado por `document.body.focus()` no AJAX da fila
+
+### Correções nos Relatórios de Estatísticas
+- Corrigido formato DateInterval nos atendimentos concluídos (`%I/%S` → `%i/%s`)
+- Tratamento de datas nulas no relatório de atendimentos por status
+- Método `prepararRelatorio()` extraído para reutilização entre HTML e PDF
+
 ---
 
 ## Vetor Panel (Gerenciador de Mídia)
