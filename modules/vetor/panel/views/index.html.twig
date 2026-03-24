@@ -3,6 +3,7 @@
 <div id="vetor-panel">
     <ul class="nav nav-tabs">
         <li class="active"><a href="#tab-widgets" data-toggle="tab">Widgets</a></li>
+        <li><a href="#tab-rodape" data-toggle="tab">Rodapé / Notícias</a></li>
         <li><a href="#tab-arquivos" data-toggle="tab">Arquivos</a></li>
     </ul>
     <div class="tab-content">
@@ -37,13 +38,37 @@
                     <button class="btn btn-default" onclick="VetorAdmin.adicionarWidget('clima')">
                         <span class="glyphicon glyphicon-cloud"></span> Clima
                     </button>
-                    <button class="btn btn-default" onclick="VetorAdmin.adicionarWidget('noticias')">
-                        <span class="glyphicon glyphicon-list-alt"></span> Notícias RSS
-                    </button>
                 </div>
                 <button class="btn btn-primary pull-right" onclick="VetorAdmin.salvar()">
                     <span class="glyphicon glyphicon-floppy-disk"></span> Salvar Configuração
                 </button>
+            </div>
+        </div>
+
+        <div id="tab-rodape" class="tab-pane">
+            <div class="well well-sm" style="margin-top:10px">
+                Configure os feeds RSS que serão exibidos no rodapé do painel (ticker de notícias).
+                As notícias alternam automaticamente entre os feeds cadastrados.
+            </div>
+
+            <div id="news-sources-lista"></div>
+
+            <div style="margin-top:15px">
+                <button class="btn btn-default" onclick="VetorAdmin.adicionarFeed()">
+                    <span class="glyphicon glyphicon-plus"></span> Adicionar Feed RSS
+                </button>
+                <button class="btn btn-primary pull-right" onclick="VetorAdmin.salvar()">
+                    <span class="glyphicon glyphicon-floppy-disk"></span> Salvar Configuração
+                </button>
+            </div>
+
+            <div class="form-group" style="margin-top:20px">
+                <label>Intervalo entre notícias (ms)</label>
+                <input type="number" class="form-control" style="width:200px"
+                       value="" id="news-interval"
+                       onchange="VetorAdmin.news.interval=parseInt(this.value)"
+                       placeholder="10000">
+                <p class="help-block">Tempo que cada notícia fica visível (padrão: 10000 = 10 segundos)</p>
             </div>
         </div>
 
@@ -83,6 +108,7 @@
 <script type="text/javascript">
 var VetorAdmin = {
     widgets: {{ widgets|json_encode()|raw }},
+    news: {{ news|json_encode()|raw }},
 
     tipoLabels: {
         'video': '<span class="glyphicon glyphicon-film"></span> VÍDEO',
@@ -91,8 +117,7 @@ var VetorAdmin = {
         'image': '<span class="glyphicon glyphicon-picture"></span> IMAGEM',
         'html': '<span class="glyphicon glyphicon-pencil"></span> HTML',
         'comunicado': '<span class="glyphicon glyphicon-bullhorn"></span> COMUNICADO',
-        'clima': '<span class="glyphicon glyphicon-cloud"></span> CLIMA',
-        'noticias': '<span class="glyphicon glyphicon-list-alt"></span> NOTÍCIAS'
+        'clima': '<span class="glyphicon glyphicon-cloud"></span> CLIMA'
     },
 
     renderizar: function() {
@@ -142,10 +167,6 @@ var VetorAdmin = {
                     card += '<p class="help-block">Usa a API gratuita do OpenWeatherMap. Informe a chave da API abaixo (obtenha em <a href="https://openweathermap.org/api" target="_blank">openweathermap.org</a>).</p>';
                     card += VetorAdmin.campoTexto(i, w, 'apiKey', 'Chave da API (OpenWeatherMap)', 'Ex: abc123def456...');
                     break;
-                case 'noticias':
-                    card += VetorAdmin.campoTexto(i, w, 'content', 'URL do feed RSS/Atom', 'http://g1.globo.com/dynamo/rss2.xml');
-                    card += '<div class="form-group"><label>Quantidade de itens</label><input type="number" class="form-control" value="' + (w.maxItems || 10) + '" min="1" max="50" onchange="VetorAdmin.widgets[' + i + '].maxItems=parseInt(this.value)"></div>';
-                    break;
             }
 
             // Campos comuns
@@ -191,12 +212,6 @@ var VetorAdmin = {
             w.duration = 30000;
             w.background = '#1a1a2e';
         }
-        if (tipo === 'noticias') {
-            w.content = 'http://g1.globo.com/dynamo/rss2.xml';
-            w.maxItems = 10;
-            w.duration = 30000;
-            w.background = '#182945';
-        }
         VetorAdmin.widgets.push(w);
         VetorAdmin.renderizar();
     },
@@ -230,7 +245,10 @@ var VetorAdmin = {
         SGA.ajax({
             url: SGA.url('salvar'),
             type: 'post',
-            data: { widgets: JSON.stringify(VetorAdmin.widgets) },
+            data: {
+                widgets: JSON.stringify(VetorAdmin.widgets),
+                news: JSON.stringify(VetorAdmin.news)
+            },
             success: function(response) {
                 if (response.success) {
                     Swal.fire({
@@ -319,10 +337,74 @@ var VetorAdmin = {
                 });
             }
         });
+    },
+
+    // ===== Feeds RSS (Rodapé) =====
+
+    renderizarFeeds: function() {
+        var lista = $('#news-sources-lista');
+        lista.html('');
+        if (!VetorAdmin.news.sources) VetorAdmin.news.sources = [];
+        $('#news-interval').val(VetorAdmin.news.interval || 10000);
+
+        for (var i = 0; i < VetorAdmin.news.sources.length; i++) {
+            var src = VetorAdmin.news.sources[i];
+            var card = '<div class="panel panel-default">';
+            card += '<div class="panel-body">';
+            card += '<div class="row">';
+            card += '<div class="col-sm-6">';
+            card += '<div class="form-group"><label>URL do Feed RSS</label>';
+            card += '<input type="text" class="form-control" value="' + VetorAdmin.esc(src.url || '') + '" placeholder="http://g1.globo.com/dynamo/rss2.xml" onchange="VetorAdmin.news.sources[' + i + '].url=this.value"></div>';
+            card += '</div>';
+            card += '<div class="col-sm-3">';
+            card += '<div class="form-group"><label>Tipo</label>';
+            card += '<select class="form-control" onchange="VetorAdmin.news.sources[' + i + '].type=this.value">';
+            card += '<option value="rss"' + (src.type === 'rss' ? ' selected' : '') + '>RSS</option>';
+            card += '<option value="atom"' + (src.type === 'atom' ? ' selected' : '') + '>Atom</option>';
+            card += '</select></div>';
+            card += '</div>';
+            card += '<div class="col-sm-3">';
+            card += '<div class="form-group"><label>&nbsp;</label><br>';
+            card += '<button class="btn btn-danger btn-sm" onclick="VetorAdmin.removerFeed(' + i + ')"><span class="glyphicon glyphicon-trash"></span> Remover</button>';
+            card += '</div>';
+            card += '</div>';
+            card += '</div></div></div>';
+            lista.append(card);
+        }
+
+        if (VetorAdmin.news.sources.length === 0) {
+            lista.html('<p class="text-muted" style="padding:15px">Nenhum feed cadastrado. Clique em "Adicionar Feed RSS" para começar.</p>');
+        }
+    },
+
+    adicionarFeed: function() {
+        if (!VetorAdmin.news.sources) VetorAdmin.news.sources = [];
+        VetorAdmin.news.sources.push({
+            url: 'http://g1.globo.com/dynamo/rss2.xml',
+            type: 'rss'
+        });
+        VetorAdmin.renderizarFeeds();
+    },
+
+    removerFeed: function(index) {
+        Swal.fire({
+            title: 'Remover feed?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Sim',
+            cancelButtonText: 'Cancelar'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                VetorAdmin.news.sources.splice(index, 1);
+                VetorAdmin.renderizarFeeds();
+            }
+        });
     }
 };
 
 VetorAdmin.renderizar();
+VetorAdmin.renderizarFeeds();
 VetorAdmin.carregarArquivos();
 </script>
 {% endblock %}

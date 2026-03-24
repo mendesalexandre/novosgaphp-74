@@ -23,6 +23,7 @@ class PanelController extends ModuleController
         $config = $this->carregarConfig();
         $this->app()->view()->set('config', $config);
         $this->app()->view()->set('widgets', isset($config['widgets']) ? $config['widgets'] : array());
+        $this->app()->view()->set('news', isset($config['news']) ? $config['news'] : array('sources' => array(), 'interval' => 10000));
     }
 
     /**
@@ -59,8 +60,14 @@ class PanelController extends ModuleController
                 throw new Exception(_('Formato inválido'));
             }
 
+            $newsJson = $context->request()->post('news', '');
+            $news = $newsJson ? json_decode($newsJson, true) : null;
+
             $config = $this->carregarConfig();
             $config['widgets'] = $widgets;
+            if ($news && is_array($news)) {
+                $config['news'] = $news;
+            }
             $config['timestamp'] = time();
             $this->salvarConfig($config);
 
