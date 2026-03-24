@@ -111,6 +111,19 @@
                                         </span>
                                     </li>
                                 </ul>
+                                <div class="form-group" style="margin-top:10px">
+                                    <label for="nome-cliente">{% trans %}Nome do cliente{% endtrans %} ({% trans %}opcional{% endtrans %})</label>
+                                    <div class="input-group">
+                                        <input type="text" id="nome-cliente" class="form-control" maxlength="100"
+                                               placeholder="{% trans %}Informe o nome do cliente{% endtrans %}"
+                                               value="{% if atendimento %}{{ atendimento.cliente.nome }}{% endif %}" />
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-default" type="button" onclick="SGA.Atendimento.salvarNomeCliente()">
+                                                {% trans %}Salvar{% endtrans %}
+                                            </button>
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                             <div class="row">
                                 <div class="col-xs-4">
@@ -375,6 +388,7 @@
             SGA.Atendimento.marcarNaoCompareceu = '{% trans %}Realmente deseja marcar como não compareceu?{% endtrans %}';
             SGA.Atendimento.nenhumServicoSelecionado = '{% trans %}Nenhum serviço selecionado{% endtrans %}';
             SGA.Atendimento.tiposAtendimento = {{ tiposAtendimento|json_encode()|raw }};
+            SGA.Atendimento.permitirChamarDireta = {{ permitirChamarDireta ? 'true' : 'false' }};
             SGA.Atendimento.init({% if atendimento %}{{ atendimento.status }}{% else %}1{% endif %});
         </script>
     {% endif %}

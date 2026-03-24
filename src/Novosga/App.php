@@ -43,12 +43,12 @@ class App extends \Slim\Slim
 
         $this->view()->parserExtensions = array(
             new \Slim\Views\TwigExtension(),
-            new \Twig_Extensions_Extension_I18n(),
+            new \Twig\Extensions\I18nExtension(),
             new Twig\Extensions(),
         );
 
         if ($userSettings['debug']) {
-            $this->view()->parserExtensions[] = new \Twig_Extension_Debug();
+            $this->view()->parserExtensions[] = new \Twig\Extension\DebugExtension();
         }
 
         $app = $this;

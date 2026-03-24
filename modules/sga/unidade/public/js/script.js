@@ -36,6 +36,16 @@ SGA.Unidade = {
         },
     },
         
+    salvarAvancado: function() {
+        SGA.ajax({
+            url: SGA.url('salvar_avancado'),
+            type: 'post',
+            data: {
+                chamar_senha_direta: $('#chamar-senha-direta:checked').length ? '1' : '0'
+            }
+        });
+    },
+
     Servicos: {
         toggle: function(btn) {
             btn = $(btn);

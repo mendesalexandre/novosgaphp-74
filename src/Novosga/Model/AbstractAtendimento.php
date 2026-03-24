@@ -394,7 +394,7 @@ abstract class AbstractAtendimento extends SequencialModel
             return $this->getDataFim()->diff($this->getDataChegada());
         }
 
-        return new \DateInterval();
+        return new \DateInterval('PT0S');
     }
 
     /**
@@ -409,7 +409,7 @@ abstract class AbstractAtendimento extends SequencialModel
             return $this->getDataFim()->diff($this->getDataInicio());
         }
 
-        return new \DateInterval();
+        return new \DateInterval('PT0S');
     }
 
     /**

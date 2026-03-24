@@ -238,6 +238,49 @@ class ApiV1 extends Api
     }
 
     /**
+     * Chama uma senha específica.
+     *
+     * @param int $id Id do atendimento
+     * @param int $usuario Id ou objeto do usuario
+     * @param int $local Numero do local/guiche
+     *
+     * @return array
+     */
+    public function chamarSenha($id, $usuario, $local)
+    {
+        $service = new AtendimentoService($this->em);
+        $atendimento = $this->em->find('Novosga\Model\Atendimento', $id);
+        if (!$atendimento) {
+            throw new Exception(_('Atendimento inválido'));
+        }
+        if ($atendimento->getStatus() !== AtendimentoService::SENHA_EMITIDA) {
+            throw new Exception(_('Essa senha não está aguardando atendimento'));
+        }
+
+        if (!($usuario instanceof \Novosga\Model\Usuario)) {
+            $usuario = $this->em->find('Novosga\Model\Usuario', (int) $usuario);
+        }
+        if (!$usuario) {
+            throw new Exception(_('Usuário inválido'));
+        }
+
+        $success = $service->chamar($atendimento, $usuario, (int) $local);
+        if (!$success) {
+            throw new Exception(_('Erro ao chamar a senha'));
+        }
+
+        $unidade = $atendimento->getServicoUnidade()->getUnidade();
+        $service->chamarSenha($unidade, $atendimento);
+
+        return array(
+            'success' => true,
+            'senha' => $atendimento->getSenha()->toString(),
+            'guiche' => str_pad($atendimento->getLocal(), 2, '0', STR_PAD_LEFT),
+            'chamadaEm' => $atendimento->getDataChamada()->format('Y-m-d\TH:i:s'),
+        );
+    }
+
+    /**
      * Distribui uma nova senha.
      */
     public function distribui($unidade, $usuario, $servico, $prioridade, $nomeCliente, $documentoCliente)

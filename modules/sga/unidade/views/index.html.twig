@@ -11,6 +11,7 @@
     <ul class="nav nav-tabs">
         <li class="active"><a href="#tab-servicos" data-toggle="tab">{% trans %}Serviços{% endtrans %}</a></li>
         <li><a href="#tab-triagem" data-toggle="tab">{% trans %}Triagem{% endtrans %}</a></li>
+        <li><a href="#tab-avancado" data-toggle="tab">{% trans %}Avançado{% endtrans %}</a></li>
     </ul>
     <div class="tab-content">
         <div id="tab-servicos" class="tab-pane active">
@@ -104,6 +105,22 @@
                             {% trans %}Reiniciar{% endtrans %}
                         </button>
                     </div>
+                </fieldset>
+            </form>
+        </div>
+        <div id="tab-avancado" class="tab-pane">
+            <form id="form-avancado" role="form" onsubmit="return false">
+                <fieldset>
+                    <legend>{% trans %}Configurações Avançadas{% endtrans %}</legend>
+                    <div class="checkbox">
+                        <label for="chamar-senha-direta">
+                            <input id="chamar-senha-direta" name="chamar_senha_direta" type="checkbox" value="1"
+                                   {% if permitirChamarSenhaDireta %}checked="checked"{% endif %}
+                                   onclick="SGA.Unidade.salvarAvancado()" />
+                            {% trans %}Permitir chamar senha específica da fila{% endtrans %}
+                        </label>
+                    </div>
+                    <p class="help-block">{% trans %}Quando ativado, o atendente pode clicar em qualquer senha da fila para chamá-la diretamente, em vez de apenas chamar o próximo.{% endtrans %}</p>
                 </fieldset>
             </form>
         </div>

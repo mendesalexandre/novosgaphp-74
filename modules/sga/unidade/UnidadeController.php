@@ -4,6 +4,7 @@ namespace modules\sga\unidade;
 
 use Exception;
 use Novosga\Service\AtendimentoService;
+use Novosga\Service\UnidadeService;
 use Novosga\Context;
 use Novosga\Controller\ModuleController;
 use Novosga\Http\JsonResponse;
@@ -41,8 +42,14 @@ class UnidadeController extends ModuleController
             // todos servicos da unidade
             $servicos = $service->servicosUnidade($unidade);
 
+            // configuracao avancada
+            $unidadeService = new UnidadeService($this->em());
+            $meta = $unidadeService->meta($unidade, 'permitir_chamar_senha_direta');
+            $permitirChamarSenhaDireta = ($meta && $meta->getValue() == '1');
+
             $this->app()->view()->set('servicos', $servicos);
             $this->app()->view()->set('locais', $locais);
+            $this->app()->view()->set('permitirChamarSenhaDireta', $permitirChamarSenhaDireta);
         }
     }
 
@@ -126,6 +133,28 @@ class UnidadeController extends ModuleController
             }
             $this->em()->merge($su);
             $this->em()->flush();
+            $response->success = true;
+        } catch (Exception $e) {
+            $response->message = $e->getMessage();
+        }
+
+        return $response;
+    }
+
+    public function salvar_avancado(Context $context)
+    {
+        $response = new JsonResponse();
+        try {
+            if (!$context->request()->isPost()) {
+                throw new \Exception(_('Somente via POST'));
+            }
+            $unidade = $context->getUnidade();
+            if (!$unidade) {
+                throw new Exception(_('Nenhuma unidade definida'));
+            }
+            $chamarSenhaDireta = $context->request()->post('chamar_senha_direta', '0');
+            $unidadeService = new UnidadeService($this->em());
+            $unidadeService->meta($unidade, 'permitir_chamar_senha_direta', $chamarSenhaDireta);
             $response->success = true;
         } catch (Exception $e) {
             $response->message = $e->getMessage();

@@ -14,19 +14,22 @@
         }
     ],
     "require": {
-        "php": ">=5.4",
-        "ext-pdo": "~1.0",
+        "php": ">=7.1",
+        "ext-pdo": "*",
         "ext-json": "*",
-        "ext-gettext": "*",
         "slim/slim": "~2.6",
         "slim/views": "~0.1",
-        "twig/twig": "~1.18",
-        "twig/extensions": "~1.2",
-        "doctrine/orm": "~2.5",
-        "bshaffer/oauth2-server-php": "~1.7"
+        "twig/twig": "^1.44 || ^2.14",
+        "twig/extensions": "~1.5",
+        "doctrine/orm": "^2.8",
+        "doctrine/dbal": "^2.13",
+        "doctrine/common": "^3.0",
+        "doctrine/cache": "^1.10",
+        "doctrine/annotations": "^1.13",
+        "bshaffer/oauth2-server-php": "^1.11",
+        "symfony/console": "^5.4"
     },
     "suggest": {
-        "ext-mysql": "For MySQL or MariaDB databases",
         "ext-pgsql": "For PostgreSQL databases"
     },
     "autoload": {

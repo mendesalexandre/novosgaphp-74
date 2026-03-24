@@ -7,7 +7,7 @@ namespace Novosga\Twig;
  *
  * @author Rogerio Lino <rogeriolino@gmail.com>
  */
-class Extensions extends \Twig_Extension
+class Extensions extends \Twig\Extension\AbstractExtension
 {
     public function getName()
     {

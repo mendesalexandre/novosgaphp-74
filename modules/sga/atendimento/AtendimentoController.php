@@ -53,11 +53,17 @@ class AtendimentoController extends ModuleController
             $usuario->setTipoAtendimento((int) $tipoMeta->getValue());
         }
 
+        // verificar configuração de chamada direta
+        $unidadeService = new \Novosga\Service\UnidadeService($this->em());
+        $meta = $unidadeService->meta($unidade, 'permitir_chamar_senha_direta');
+        $permitirChamarDireta = ($meta && $meta->getValue() == '1');
+
         $this->app()->view()->set('time', time() * 1000);
         $this->app()->view()->set('unidade', $unidade);
         $this->app()->view()->set('atendimento', $this->atendimentoService->atendimentoAndamento($usuario->getId()));
         $this->app()->view()->set('servicos', $usuario->getServicos());
         $this->app()->view()->set('servicosIndisponiveis', $usuario->getServicosIndisponiveis());
+        $this->app()->view()->set('permitirChamarDireta', $permitirChamarDireta);
 
         $tiposAtendimento = array(
             UsuarioSessao::ATEND_TODOS => _('Todos'),
@@ -400,6 +406,156 @@ class AtendimentoController extends ModuleController
                 throw new Exception(sprintf(_('Erro ao mudar status do atendimento %s para encerrado'), $atual->getId()));
             }
         } catch (Exception $e) {
+            $response->message = $e->getMessage();
+        }
+
+        return $response;
+    }
+
+    /**
+     * Chama uma senha específica da fila (quando habilitado por configuração).
+     *
+     * @param Context $context
+     * @param int $id
+     */
+    public function chamar_especifico(Context $context, $id)
+    {
+        $response = new JsonResponse();
+        try {
+            if (!$context->request()->isPost()) {
+                throw new Exception(_('Somente via POST'));
+            }
+            $usuario = $context->getUser();
+            $unidade = $context->getUnidade();
+            if (!$usuario || !$unidade) {
+                throw new Exception(_('Nenhum usuário na sessão'));
+            }
+
+            // verificar se configuração permite chamar direto
+            $unidadeService = new \Novosga\Service\UnidadeService($this->em());
+            $meta = $unidadeService->meta($unidade, 'permitir_chamar_senha_direta');
+            if (!$meta || $meta->getValue() != '1') {
+                throw new Exception(_('Chamada direta de senha não habilitada para esta unidade'));
+            }
+
+            // verifica se ja esta atendendo alguem
+            $atual = $this->atendimentoService->atendimentoAndamento($usuario->getId());
+            if ($atual) {
+                throw new Exception(_('Já existe um atendimento em andamento'));
+            }
+
+            // busca o atendimento especifico
+            $atendimento = $this->atendimentoService->buscaAtendimento($unidade, (int) $id);
+            if (!$atendimento) {
+                throw new Exception(_('Atendimento inválido'));
+            }
+            if ($atendimento->getStatus() != AtendimentoService::SENHA_EMITIDA) {
+                throw new Exception(_('Essa senha não está aguardando atendimento'));
+            }
+
+            $success = $this->atendimentoService->chamar($atendimento, $usuario->getWrapped(), $usuario->getLocal());
+            if (!$success) {
+                throw new Exception(_('Erro ao chamar a senha'));
+            }
+
+            // incrementando contadores de prioridade
+            if ($atendimento->getPrioridade()->getPeso() > 0) {
+                $usuario->setSequenciaPrioridade($usuario->getSequenciaPrioridade() + 1);
+            } else {
+                $usuario->setSequenciaPrioridade(0);
+            }
+            $context->setUser($usuario);
+
+            $this->atendimentoService->chamarSenha($unidade, $atendimento);
+            $response->success = true;
+            $response->data = $atendimento->jsonSerialize();
+        } catch (Exception $e) {
+            $response->success = false;
+            $response->message = $e->getMessage();
+        }
+
+        return $response;
+    }
+
+    /**
+     * Rechama uma senha que já foi chamada nas últimas 2 horas.
+     *
+     * @param Context $context
+     * @param int $id
+     */
+    public function rechamar(Context $context, $id)
+    {
+        $response = new JsonResponse();
+        try {
+            if (!$context->request()->isPost()) {
+                throw new Exception(_('Somente via POST'));
+            }
+            $usuario = $context->getUser();
+            $unidade = $context->getUnidade();
+            if (!$usuario || !$unidade) {
+                throw new Exception(_('Nenhum usuário na sessão'));
+            }
+
+            $atendimento = $this->atendimentoService->buscaAtendimento($unidade, (int) $id);
+            if (!$atendimento) {
+                throw new Exception(_('Atendimento inválido'));
+            }
+
+            // verifica se foi chamado nas ultimas 2 horas
+            $dataChamada = $atendimento->getDataChamada();
+            if (!$dataChamada) {
+                throw new Exception(_('Essa senha ainda não foi chamada'));
+            }
+            $agora = new \DateTime();
+            $diff = $agora->getTimestamp() - $dataChamada->getTimestamp();
+            if ($diff > 7200) {
+                throw new Exception(_('Só é possível rechamar senhas das últimas 2 horas'));
+            }
+
+            // republica no painel sem alterar status
+            $this->atendimentoService->chamarSenha($unidade, $atendimento);
+            $response->success = true;
+            $response->data = $atendimento->jsonSerialize();
+        } catch (Exception $e) {
+            $response->success = false;
+            $response->message = $e->getMessage();
+        }
+
+        return $response;
+    }
+
+    /**
+     * Salva o nome do cliente no atendimento atual.
+     *
+     * @param Context $context
+     */
+    public function salvar_nome_cliente(Context $context)
+    {
+        $response = new JsonResponse();
+        try {
+            if (!$context->request()->isPost()) {
+                throw new Exception(_('Somente via POST'));
+            }
+            $usuario = $context->getUser();
+            if (!$usuario) {
+                throw new Exception(_('Nenhum usuário na sessão'));
+            }
+            $atual = $this->atendimentoService->atendimentoAndamento($usuario->getId());
+            if (!$atual) {
+                throw new Exception(_('Nenhum atendimento em andamento'));
+            }
+            $nomeCliente = $context->request()->post('nome_cliente', '');
+            $query = $this->em()->createQuery("
+                UPDATE Novosga\Model\Atendimento e
+                SET e.nomeCliente = :nome
+                WHERE e.id = :id
+            ");
+            $query->setParameter('nome', $nomeCliente);
+            $query->setParameter('id', $atual->getId());
+            $query->execute();
+            $response->success = true;
+        } catch (Exception $e) {
+            $response->success = false;
             $response->message = $e->getMessage();
         }
 

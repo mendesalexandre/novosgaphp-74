@@ -14,6 +14,7 @@ SGA.Atendimento = {
     defaultTitle: '',
     timeoutId: 0,
     tiposAtendimento: {},
+    permitirChamarDireta: false,
     
     init: function(status) {
         SGA.Atendimento.ajaxUpdate();
@@ -58,7 +59,11 @@ SGA.Atendimento = {
                             }
                             var onclick = 'SGA.Atendimento.infoSenha(' + atendimento.id + ')';
                             var title = atendimento.servico + ' (' + atendimento.espera + ')';
-                            var item = '<li><a class="' + cssClass + '" href="javascript:void(0)" onclick="' + onclick + '" title="' + title + '">' + atendimento.senha + '</a></li>';
+                            var item = '<li><a class="' + cssClass + '" href="javascript:void(0)" onclick="' + onclick + '" title="' + title + '">' + atendimento.senha + '</a>';
+                            if (SGA.Atendimento.permitirChamarDireta) {
+                                item += ' <button class="btn btn-xs btn-primary btn-chamar-direto" onclick="SGA.Atendimento.chamarEspecifico(' + atendimento.id + ', this)" title="Chamar esta senha">Chamar</button>';
+                            }
+                            item += '</li>';
                             list.append(item);
                         }
                         document.title = "(" + atendimentos.length + ") " + SGA.Atendimento.defaultTitle;
@@ -177,6 +182,27 @@ SGA.Atendimento = {
             button: btn,
             enableDelay: 5000,
             action: 'chamar'
+        });
+    },
+
+    salvarNomeCliente: function() {
+        SGA.ajax({
+            url: SGA.url('salvar_nome_cliente'),
+            type: 'post',
+            data: {
+                nome_cliente: $('#nome-cliente').val()
+            }
+        });
+    },
+
+    chamarEspecifico: function(id, btn) {
+        SGA.Atendimento.control({
+            button: btn,
+            enableDelay: 5000,
+            action: 'chamar_especifico/' + id,
+            success: function(response) {
+                SGA.Atendimento.updateControls(2, response.data);
+            }
         });
     },
     

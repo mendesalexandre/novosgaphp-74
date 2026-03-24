@@ -9,11 +9,11 @@ use Slim\Slim;
  *
  * @author Rogerio Lino <rogeriolino@gmail.com>
  */
-class ResourcesFunction extends \Twig_SimpleFunction
+class ResourcesFunction extends \Twig\TwigFunction
 {
     public function __construct()
     {
-        parent::__construct('resources', function (\Twig_Environment $env, $param1, $param2 = '', $version = null) {
+        parent::__construct('resources', function (\Twig\Environment $env, $param1, $param2 = '', $version = null) {
 
             $req = Slim::getInstance()->request();
             $baseUrl = $req->getUrl().$req->getRootUri();

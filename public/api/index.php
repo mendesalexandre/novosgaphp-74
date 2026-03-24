@@ -255,6 +255,28 @@ $app->post('/distribui', function() use ($app, $api, $server) {
 });
 
 /**
+ * Chama uma senha específica.
+ *
+ * POST /atendimentos/:id/chamar
+ * form data:
+ *   int local (numero do guiche/local)
+ *
+ * < 200
+ * {
+ *   "success": true,
+ *   "senha": "A001",
+ *   "guiche": "01",
+ *   "chamadaEm": "2026-03-24T10:00:00"
+ * }
+ */
+$app->post('/atendimentos/:id/chamar', function($id) use ($app, $api, $server) {
+    $server->checkAccess();
+    $usuario = $server->user();
+    $local = (int) $app->request()->post('local', 1);
+    echo json_encode($api->chamarSenha($id, $usuario, $local));
+});
+
+/**
  * Visualiza um atendimento que ainda não foi arquivado
  * GET /atendimento/1
  */
@@ -269,6 +291,67 @@ $app->get('/atendimento/:id', function($id) use ($app, $api, $server) {
 $app->get('/atendimento/:id/info', function($id) use ($app, $api, $server) {
     $server->checkAccess();
     echo json_encode($api->atendimentoInfo($id));
+});
+
+/**
+ * Retorna as ultimas senhas chamadas no painel (para polling do painel TV).
+ * Aceita parametro lastId para retornar apenas senhas novas.
+ *
+ * GET /painel/:unidade/latest?servicos=1,2,3&lastId=0
+ */
+$app->get('/painel/:unidade/latest', function($unidade) use ($app, $em) {
+    $servicos = $app->request()->get('servicos');
+    if (empty($servicos)) {
+        echo json_encode(array('error' => 'Servicos não informados'));
+        return;
+    }
+    $servicos = array_filter(explode(',', $servicos), function($value) {
+        return $value > 0;
+    });
+    if (empty($servicos)) {
+        echo json_encode(array('error' => 'Servicos inválidos'));
+        return;
+    }
+
+    $lastId = (int) $app->request()->get('lastId', 0);
+    $length = \Novosga\Model\Util\Senha::LENGTH;
+
+    $qb = $em->createQueryBuilder()
+        ->select("e.id, e.siglaSenha as sigla, e.mensagem, e.numeroSenha as numero,
+            e.local, e.numeroLocal as numeroLocal, e.peso, s.nome as servico,
+            e.prioridade, e.nomeCliente, e.documentoCliente,
+            $length as length")
+        ->from('Novosga\Model\PainelSenha', 'e')
+        ->join('e.servico', 's')
+        ->where('e.unidade = :unidade')
+        ->andWhere('s.id IN (:servicos)')
+        ->orderBy('e.id', 'DESC')
+        ->setParameter(':unidade', (int) $unidade)
+        ->setParameter(':servicos', $servicos)
+        ->setMaxResults(10);
+
+    if ($lastId > 0) {
+        $qb->andWhere('e.id > :lastId')
+           ->setParameter(':lastId', $lastId);
+    }
+
+    $result = $qb->getQuery()->getResult();
+    $senhas = array();
+    foreach ($result as $senha) {
+        $sigla = $senha['sigla'];
+        $numero = str_pad($senha['numero'], $senha['length'], '0', STR_PAD_LEFT);
+        $senhas[] = array(
+            'id' => $senha['id'],
+            'senha' => $sigla . $numero,
+            'guiche' => $senha['numeroLocal'],
+            'servico' => $senha['servico'],
+            'local' => $senha['local'],
+            'prioridade' => $senha['prioridade'],
+            'nomeCliente' => $senha['nomeCliente'],
+        );
+    }
+
+    echo json_encode($senhas);
 });
 
 /*

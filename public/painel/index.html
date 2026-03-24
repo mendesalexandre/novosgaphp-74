@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Painel de Senhas - Novo SGA</title>
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
+    <style>
+        body {
+            background: #1a1a2e;
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+        .header {
+            background: #16213e;
+            padding: 15px 30px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            border-bottom: 3px solid #0f3460;
+        }
+        .painel-container {
+            display: flex;
+            height: calc(100vh - 70px);
+        }
+        .senha-principal {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #16213e;
+            margin: 20px;
+            border-radius: 10px;
+        }
+        .senha-principal .label-senha { font-size: 28px; color: #aaa; margin-bottom: 10px; }
+        .senha-principal .numero { font-size: 120px; font-weight: bold; color: #e94560; line-height: 1; }
+        .senha-principal .guiche {
+            font-size: 36px; color: #0f3460; margin-top: 20px;
+            background: #fff; padding: 10px 40px; border-radius: 8px; font-weight: bold;
+        }
+        .senha-principal .servico { font-size: 20px; color: #ccc; margin-top: 15px; }
+        .historico {
+            width: 350px; background: #16213e; margin: 20px 20px 20px 0;
+            border-radius: 10px; padding: 20px; overflow-y: auto;
+        }
+        .historico h3 { text-align: center; margin-bottom: 15px; color: #aaa; font-size: 18px; }
+        .historico .item {
+            background: #1a1a2e; padding: 10px 15px; margin-bottom: 8px;
+            border-radius: 5px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .historico .item .senha-num { font-size: 22px; font-weight: bold; color: #e94560; }
+        .historico .item .guiche-num { font-size: 16px; color: #aaa; }
+        .config-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.9); padding: 15px 20px; display: none; z-index: 100;
+        }
+        .config-bar.visible { display: block; }
+    </style>
+</head>
+<body>
+    <div class="header">Painel de Senhas</div>
+    <div class="painel-container">
+        <div class="senha-principal">
+            <div class="label-senha">Senha</div>
+            <div class="numero" id="senha-atual">---</div>
+            <div class="guiche" id="guiche-atual">Guich&ecirc; -</div>
+            <div class="servico" id="servico-atual">&nbsp;</div>
+        </div>
+        <div class="historico">
+            <h3>Chamadas Anteriores</h3>
+            <div id="historico-lista"></div>
+        </div>
+    </div>
+
+    <div class="config-bar" id="config-bar">
+        <form class="form-inline" onsubmit="return iniciarPainel()">
+            <label style="color:#fff">Unidade:</label>
+            <input type="number" id="cfg-unidade" class="form-control" value="1" style="width:80px">
+            <label style="color:#fff;margin-left:10px">Servi&ccedil;os (IDs):</label>
+            <input type="text" id="cfg-servicos" class="form-control" value="1" style="width:150px">
+            <button type="submit" class="btn btn-primary" style="margin-left:10px">Iniciar</button>
+        </form>
+    </div>
+
+    <script>
+        var lastId = 0;
+        var historico = [];
+        var MAX_HISTORICO = 10;
+        var intervalo = null;
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'c' || e.key === 'C') {
+                document.getElementById('config-bar').classList.toggle('visible');
+            }
+        });
+
+        function exibirSenha(data) {
+            var senhaAtual = document.getElementById('senha-atual').textContent;
+            if (senhaAtual && senhaAtual !== '---') {
+                var guicheAtual = document.getElementById('guiche-atual').textContent;
+                historico.unshift({ senha: senhaAtual, guiche: guicheAtual });
+                if (historico.length > MAX_HISTORICO) historico.pop();
+                atualizarHistorico();
+            }
+            document.getElementById('senha-atual').textContent = data.senha;
+            document.getElementById('guiche-atual').textContent = 'Guichê ' + data.guiche;
+            document.getElementById('servico-atual').textContent = data.servico || '';
+        }
+
+        function atualizarHistorico() {
+            var lista = document.getElementById('historico-lista');
+            lista.innerHTML = '';
+            for (var i = 0; i < historico.length; i++) {
+                lista.innerHTML += '<div class="item"><span class="senha-num">' +
+                    historico[i].senha + '</span><span class="guiche-num">' +
+                    historico[i].guiche + '</span></div>';
+            }
+        }
+
+        function poll() {
+            var unidade = document.getElementById('cfg-unidade').value;
+            var servicos = document.getElementById('cfg-servicos').value;
+            var apiBase = window.location.protocol + '//' + window.location.host + '/api';
+            var url = apiBase + '/painel/' + unidade + '/latest?servicos=' + servicos + '&lastId=' + lastId;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    try {
+                        var senhas = JSON.parse(xhr.responseText);
+                        if (senhas.length > 0) {
+                            // senhas vem em ordem DESC, processar do mais antigo
+                            for (var i = senhas.length - 1; i >= 0; i--) {
+                                exibirSenha(senhas[i]);
+                                if (senhas[i].id > lastId) {
+                                    lastId = senhas[i].id;
+                                }
+                            }
+                        }
+                    } catch(e) {}
+                }
+            };
+            xhr.send();
+        }
+
+        function iniciarPainel() {
+            document.getElementById('config-bar').classList.remove('visible');
+            if (intervalo) clearInterval(intervalo);
+            lastId = 0;
+            poll();
+            intervalo = setInterval(poll, 2000);
+            return false;
+        }
+
+        document.getElementById('config-bar').classList.add('visible');
+    </script>
+</body>
+</html>

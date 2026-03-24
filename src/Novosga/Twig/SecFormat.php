@@ -7,11 +7,11 @@ namespace Novosga\Twig;
  *
  * @author Rogerio Lino <rogeriolino@gmail.com>
  */
-class SecFormat extends \Twig_SimpleFilter
+class SecFormat extends \Twig\TwigFilter
 {
     public function __construct()
     {
-        parent::__construct('secFormat', function (\Twig_Environment $env, $string) {
+        parent::__construct('secFormat', function (\Twig\Environment $env, $string) {
             if (strpos($string, ':')) {
                 return $string;
             }
