@@ -201,10 +201,20 @@ var VetorAdmin = {
     },
 
     removerWidget: function(index) {
-        if (confirm('Remover este widget?')) {
-            VetorAdmin.widgets.splice(index, 1);
-            VetorAdmin.renderizar();
-        }
+        Swal.fire({
+            title: 'Remover widget?',
+            text: 'Esta ação não pode ser desfeita',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Sim, remover',
+            cancelButtonText: 'Cancelar'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                VetorAdmin.widgets.splice(index, 1);
+                VetorAdmin.renderizar();
+            }
+        });
     },
 
     moverWidget: function(index, direcao) {
@@ -222,7 +232,15 @@ var VetorAdmin = {
             data: { widgets: JSON.stringify(VetorAdmin.widgets) },
             success: function(response) {
                 if (response.success) {
-                    alert('Configuração salva com sucesso!');
+                    Swal.fire({
+                        title: 'Salvo!',
+                        text: 'Configuração salva com sucesso',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire({ title: 'Erro', text: response.message || 'Erro ao salvar', icon: 'error' });
                 }
             }
         });
@@ -230,7 +248,10 @@ var VetorAdmin = {
 
     upload: function() {
         var input = document.getElementById('input-arquivo');
-        if (!input.files || !input.files[0]) { alert('Selecione um arquivo'); return; }
+        if (!input.files || !input.files[0]) {
+            Swal.fire({ title: 'Atenção', text: 'Selecione um arquivo', icon: 'warning' });
+            return;
+        }
         var formData = new FormData();
         formData.append('arquivo', input.files[0]);
         $('#upload-progresso').show();
@@ -240,12 +261,21 @@ var VetorAdmin = {
             success: function(response) {
                 $('#upload-progresso').hide();
                 if (response.success) {
-                    alert('Arquivo enviado!\nURL: ' + response.data.url);
+                    Swal.fire({
+                        title: 'Enviado!',
+                        html: 'URL do arquivo:<br><code>' + response.data.url + '</code>',
+                        icon: 'success'
+                    });
                     input.value = '';
                     VetorAdmin.carregarArquivos();
-                } else { alert('Erro: ' + response.message); }
+                } else {
+                    Swal.fire({ title: 'Erro', text: response.message, icon: 'error' });
+                }
             },
-            error: function() { $('#upload-progresso').hide(); alert('Erro ao enviar'); }
+            error: function() {
+                $('#upload-progresso').hide();
+                Swal.fire({ title: 'Erro', text: 'Erro ao enviar arquivo', icon: 'error' });
+            }
         });
     },
 
@@ -269,12 +299,25 @@ var VetorAdmin = {
     },
 
     removerArquivo: function(nome) {
-        if (confirm('Remover o arquivo ' + nome + '?')) {
-            SGA.ajax({
-                url: SGA.url('remover_arquivo'), type: 'post', data: { nome: nome },
-                success: function() { VetorAdmin.carregarArquivos(); }
-            });
-        }
+        Swal.fire({
+            title: 'Remover arquivo?',
+            text: nome,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Sim, remover',
+            cancelButtonText: 'Cancelar'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                SGA.ajax({
+                    url: SGA.url('remover_arquivo'), type: 'post', data: { nome: nome },
+                    success: function() {
+                        VetorAdmin.carregarArquivos();
+                        Swal.fire({ title: 'Removido!', icon: 'success', timer: 1500, showConfirmButton: false });
+                    }
+                });
+            }
+        });
     }
 };
 
