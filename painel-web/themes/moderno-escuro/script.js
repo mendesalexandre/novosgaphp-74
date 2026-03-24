@@ -413,51 +413,31 @@
             this.load = function() {
                 var source = self.currentSource();
                 if (source) {
-                    var url = source.url, dataType, parser;
-                    switch (source.type) {
-                        case 'rss':
-                            // xml parser
-                            dataType = 'xml';
-                            parser = function(data) {
-                                var items = [];
-                                var nodes = data.getElementsByTagName('item');
-                                for (var i = 0; i < nodes.length; i++) {
-                                    var node = nodes[i];
-                                    items.push({
-                                        title: node.getElementsByTagName('title')[0].innerHTML,
-                                        content: node.getElementsByTagName('description')[0].innerHTML
-                                    });
-                                }
-                                return items;
-                            };
-                            break;
-                        case 'atom':
-                            dataType = 'xml';
-                            // xml parser
-                            parser = function(data) {
-                                var items = [];
-                                var nodes = data.getElementsByTagName('entry');
-                                for (var i = 0; i < nodes.length; i++) {
-                                    var node = nodes[0];
-                                    items.push({
-                                        "title": node.getElementsByTagName('title')[0].innerHTML,
-                                        "content": node.getElementsByTagName('content')[0].innerHTML
-                                    });
-                                }
-                                return items;
-                            };
-                            break;
-                        default:
-                            // google apis
-                            url = document.location.protocol + '//ajax.googleapis.com/ajax/services/feed/load?v=1.0&num=10&callback=?&q=' + encodeURIComponent(source.url);
-                            dataType = 'json';
-                            parser = function(data) {
-                                if (data.responseData && data.responseData.feed) {
-                                    return data.responseData.feed.entries || [];
-                                }
-                                return [];
-                            };
-                    }
+                    // Usar proxy para evitar CORS
+                    var baseUrl = PainelWeb.Storage.get('url') || '';
+                    var url = baseUrl + '/api/extra/vetor.panel/feed?url=' + encodeURIComponent(source.url);
+                    var dataType = 'xml';
+                    var parser;
+
+                    var tagName = (source.type === 'atom') ? 'entry' : 'item';
+                    var titleTag = 'title';
+                    var descTag = (source.type === 'atom') ? 'content' : 'description';
+
+                    parser = function(data) {
+                        var items = [];
+                        var nodes = data.getElementsByTagName(tagName);
+                        for (var i = 0; i < nodes.length; i++) {
+                            var node = nodes[i];
+                            var titleEl = node.getElementsByTagName(titleTag)[0];
+                            var descEl = node.getElementsByTagName(descTag)[0];
+                            items.push({
+                                title: titleEl ? (titleEl.textContent || titleEl.innerHTML) : '',
+                                content: descEl ? (descEl.textContent || descEl.innerHTML) : ''
+                            });
+                        }
+                        return items;
+                    };
+
                     $.ajax({
                         url: url,
                         dataType: dataType,
