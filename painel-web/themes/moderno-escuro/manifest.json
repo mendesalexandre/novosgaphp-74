@@ -1,0 +1,13 @@
+{
+    "name": "Moderno Escuro",
+    "description": "Tema moderno com fundo escuro, vídeo/mídia à esquerda e senhas à direita com relógio",
+    "authors": [
+        {
+            "name": "NovoSGA",
+            "email": ""
+        }
+    ],
+    "events": {
+        "onload": "VetorPanel"
+    }
+}

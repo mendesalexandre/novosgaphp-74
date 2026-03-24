@@ -1,0 +1,52 @@
+
+<div id="layout-content" class="vetor">
+    <!-- Esquerda: Mídia + Notícias -->
+    <div class="col-sm-8 h-100" style="background: #182945">
+        <div id="media-container" class="row h-70">
+            <div id="media"></div>
+        </div>
+        <div id="news" class="row h-30">
+            <div class="panel-heading">
+                <span class="pull-right text-muted"></span>
+            </div>
+            <div class="panel-body"></div>
+        </div>
+    </div>
+
+    <!-- Direita: Senha + Histórico + Relógio -->
+    <div class="col-sm-4 h-100" style="background: #E8E8F0">
+        <div id="senha-atual" class="row">
+            <h4>Senha</h4>
+            <div class="senha blink">
+                <span>{{ ultima.texto }}</span>
+            </div>
+            <div class="local blink">
+                <span>{{ ultima.local }} {{ ultima.numeroLocal }}</span>
+            </div>
+        </div>
+        <div id="historico" class="row">
+            <h4>Histórico</h4>
+            <div class="senhas">
+                <div class="senha-chamada {{ senha.styleClass }}" ng-repeat="senha in historico | limitTo: 5">
+                    <div class="senha col-sm-8">
+                        <span>{{ senha.texto }}</span>
+                    </div>
+                    <div class="local col-sm-4">
+                        <span>{{ senha.numeroLocal }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="relogio" class="row">
+            <div class="date col-sm-5">
+                <span class="text">{{ clock | date:'dd' }} de {{ month }}</span>
+                <span class="number">{{ clock | date:'yyyy' }}</span>
+            </div>
+            <div class="time col-sm-7">
+                <span class="number">{{ clock | date:'HH' }}</span>
+                <span class="separator">:</span>
+                <span class="number">{{ clock | date:'mm' }}</span>
+            </div>
+        </div>
+    </div>
+</div>

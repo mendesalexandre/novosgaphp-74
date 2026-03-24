@@ -1,0 +1,13 @@
+{
+    "name": "TV Fullscreen",
+    "description": "Tema para TV em tela cheia: mídia em background, senha em destaque sobreposta, relógio e histórico",
+    "authors": [
+        {
+            "name": "NovoSGA",
+            "email": ""
+        }
+    ],
+    "events": {
+        "onload": "VetorPanel"
+    }
+}

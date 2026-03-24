@@ -1,0 +1,48 @@
+
+<div id="layout-content" class="tv-fullscreen">
+    <!-- Background: mídia ocupa tela toda -->
+    <div id="media-container">
+        <div id="media"></div>
+    </div>
+
+    <!-- Overlay: informações sobre o vídeo -->
+    <div class="overlay">
+        <!-- Topo: relógio -->
+        <div id="relogio">
+            <div class="time">
+                <span class="number">{{ clock | date:'HH' }}</span>
+                <span class="separator">:</span>
+                <span class="number">{{ clock | date:'mm' }}</span>
+            </div>
+            <div class="date">
+                <span>{{ clock | date:'dd' }} de {{ month }} de {{ clock | date:'yyyy' }}</span>
+            </div>
+        </div>
+
+        <!-- Rodapé: senha + histórico -->
+        <div class="rodape">
+            <div id="senha-atual">
+                <div class="senha blink">
+                    <span>{{ ultima.texto }}</span>
+                </div>
+                <div class="local blink">
+                    <span>{{ ultima.local }} {{ ultima.numeroLocal }}</span>
+                </div>
+            </div>
+            <div id="historico">
+                <div class="senhas">
+                    <div class="senha-chamada {{ senha.styleClass }}" ng-repeat="senha in historico | limitTo: 4">
+                        <span class="senha-texto">{{ senha.texto }}</span>
+                        <span class="senha-local">G{{ senha.numeroLocal }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notícias ticker -->
+        <div id="news">
+            <div class="panel-heading"><span class="pull-right text-muted"></span></div>
+            <div class="panel-body"></div>
+        </div>
+    </div>
+</div>

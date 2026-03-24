@@ -1,0 +1,159 @@
+/**
+ * Tema TV Fullscreen
+ * Mídia em tela cheia com overlay de senhas
+ */
+
+#layout, #layout * { line-height: 1; }
+#layout > div, #layout-content { height: 100%; }
+
+.tv-fullscreen {
+    height: 100%;
+    position: relative;
+    background: #000;
+    font-family: 'Arial', 'Helvetica', sans-serif;
+    color: #fff;
+    overflow: hidden;
+}
+
+/* Background: mídia */
+.tv-fullscreen #media-container {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 1;
+}
+
+.tv-fullscreen #media {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.tv-fullscreen #media .widget { height: 100%; }
+.tv-fullscreen #media video { width: 100%; height: 100%; object-fit: cover; }
+.tv-fullscreen #media img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Overlay */
+.tv-fullscreen .overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none;
+}
+
+/* Relógio topo direito */
+.tv-fullscreen #relogio {
+    text-align: right;
+    padding: 15px 25px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+}
+
+.tv-fullscreen #relogio .time .number {
+    font-size: 3vw;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+.tv-fullscreen #relogio .time .separator {
+    font-size: 2.5vw;
+    opacity: 0.7;
+    animation: blink-fs 1s infinite;
+}
+
+@keyframes blink-fs {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 0; }
+}
+
+.tv-fullscreen #relogio .date span {
+    font-size: 1vw;
+    color: rgba(255,255,255,0.7);
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+}
+
+/* Rodapé: senha + histórico */
+.tv-fullscreen .rodape {
+    display: flex;
+    align-items: flex-end;
+    padding: 0 20px 10px 20px;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 70%, transparent 100%);
+}
+
+.tv-fullscreen #senha-atual {
+    flex-shrink: 0;
+    padding: 20px 30px;
+    text-align: center;
+}
+
+.tv-fullscreen #senha-atual .senha span {
+    font-size: 6vw;
+    font-weight: bold;
+    color: #e94560;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+}
+
+.tv-fullscreen #senha-atual .local span {
+    font-size: 2vw;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    display: block;
+    margin-top: 5px;
+}
+
+.tv-fullscreen #historico {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    padding: 20px;
+}
+
+.tv-fullscreen #historico .senhas {
+    display: flex;
+    gap: 15px;
+}
+
+.tv-fullscreen #historico .senha-chamada {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(5px);
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.tv-fullscreen #historico .senha-texto {
+    font-size: 2vw;
+    font-weight: bold;
+    display: block;
+}
+
+.tv-fullscreen #historico .senha-local {
+    font-size: 0.9vw;
+    color: rgba(255,255,255,0.6);
+    display: block;
+}
+
+.tv-fullscreen #historico .prioridade .senha-texto {
+    color: #ff6b6b;
+}
+
+/* Notícias ticker no fundo */
+.tv-fullscreen #news {
+    background: rgba(0,0,0,0.9);
+    height: 45px;
+    overflow: hidden;
+}
+
+.tv-fullscreen #news .panel-heading { display: none; }
+
+.tv-fullscreen #news .panel-body {
+    font-size: 1.3em;
+    color: #ccc;
+    padding: 10px 25px;
+    white-space: nowrap;
+}
+
+/* Cores por tipo de atendimento */
+#layout.normal .tv-fullscreen #senha-atual .senha span { color: #e94560; }
+#layout.prioridade .tv-fullscreen #senha-atual .senha span { color: #ff6b6b; }

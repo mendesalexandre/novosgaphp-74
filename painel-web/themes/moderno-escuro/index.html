@@ -1,0 +1,53 @@
+
+<div id="layout-content" class="moderno-escuro">
+    <!-- Esquerda: Mídia -->
+    <div class="lado-esquerdo">
+        <div id="media-container">
+            <div id="media"></div>
+        </div>
+        <!-- Rodapé com notícias -->
+        <div id="news">
+            <div class="panel-heading"><span class="pull-right text-muted"></span></div>
+            <div class="panel-body"></div>
+        </div>
+    </div>
+
+    <!-- Direita: Senha + Histórico + Relógio -->
+    <div class="lado-direito">
+        <!-- Relógio topo -->
+        <div id="relogio">
+            <div class="time">
+                <span class="number">{{ clock | date:'HH' }}</span>
+                <span class="separator">:</span>
+                <span class="number">{{ clock | date:'mm' }}</span>
+            </div>
+            <div class="date">
+                <span>{{ clock | date:'dd' }} de {{ month }} de {{ clock | date:'yyyy' }}</span>
+            </div>
+        </div>
+
+        <!-- Senha atual -->
+        <div id="senha-atual">
+            <div class="label-senha">SENHA</div>
+            <div class="senha blink">
+                <span>{{ ultima.texto }}</span>
+            </div>
+            <div class="local blink">
+                <span>{{ ultima.local }} {{ ultima.numeroLocal }}</span>
+            </div>
+        </div>
+
+        <!-- Histórico -->
+        <div id="historico">
+            <div class="titulo-historico">ANTERIORES</div>
+            <div class="senhas">
+                <div class="senha-chamada {{ senha.styleClass }}" ng-repeat="senha in historico | limitTo: 5">
+                    <div class="senha-info">
+                        <span class="senha-texto">{{ senha.texto }}</span>
+                        <span class="senha-local">Guichê {{ senha.numeroLocal }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

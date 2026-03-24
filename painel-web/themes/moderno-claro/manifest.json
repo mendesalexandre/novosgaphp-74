@@ -1,0 +1,13 @@
+{
+    "name": "Moderno Claro",
+    "description": "Tema moderno com fundo claro, vídeo/mídia à esquerda e senhas à direita com relógio",
+    "authors": [
+        {
+            "name": "NovoSGA",
+            "email": ""
+        }
+    ],
+    "events": {
+        "onload": "VetorPanel"
+    }
+}

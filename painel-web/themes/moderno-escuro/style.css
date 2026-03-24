@@ -1,0 +1,180 @@
+/**
+ * Tema Moderno Escuro
+ */
+
+#layout, #layout * { line-height: 1; }
+#layout > div, #layout-content { height: 100%; }
+
+.moderno-escuro {
+    display: flex;
+    height: 100%;
+    font-family: 'Arial', 'Helvetica', sans-serif;
+    background: #0f1923;
+    color: #fff;
+}
+
+/* ===== Lado esquerdo: mídia ===== */
+.moderno-escuro .lado-esquerdo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #0f1923;
+}
+
+.moderno-escuro #media-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.moderno-escuro #media {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.moderno-escuro #media .widget { height: 100%; }
+.moderno-escuro #media video,
+.moderno-escuro #media img { vertical-align: middle; }
+
+/* Notícias rodapé */
+.moderno-escuro #news {
+    height: 80px;
+    background: #1a2635;
+    border-top: 2px solid #e94560;
+    overflow: hidden;
+}
+
+.moderno-escuro #news .panel-heading {
+    display: none;
+}
+
+.moderno-escuro #news .panel-body {
+    font-size: 1.4em;
+    color: #ccc;
+    padding: 15px 25px;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* ===== Lado direito: senhas ===== */
+.moderno-escuro .lado-direito {
+    width: 380px;
+    display: flex;
+    flex-direction: column;
+    background: #1a2635;
+    border-left: 3px solid #e94560;
+}
+
+/* Relógio */
+.moderno-escuro #relogio {
+    padding: 20px;
+    text-align: center;
+    background: #0f1923;
+    border-bottom: 1px solid #2a3a4e;
+}
+
+.moderno-escuro #relogio .time {
+    margin-bottom: 5px;
+}
+
+.moderno-escuro #relogio .time .number {
+    font-size: 4vw;
+    font-weight: bold;
+    color: #fff;
+}
+
+.moderno-escuro #relogio .time .separator {
+    font-size: 3.5vw;
+    color: #e94560;
+    animation: blink-separator 1s infinite;
+}
+
+@keyframes blink-separator {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+.moderno-escuro #relogio .date span {
+    font-size: 1.1vw;
+    color: #8899aa;
+    text-transform: capitalize;
+}
+
+/* Senha atual */
+.moderno-escuro #senha-atual {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.moderno-escuro #senha-atual .label-senha {
+    font-size: 1.2vw;
+    color: #8899aa;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+}
+
+.moderno-escuro #senha-atual .senha span {
+    font-size: 5vw;
+    font-weight: bold;
+    color: #e94560;
+}
+
+.moderno-escuro #senha-atual .local span {
+    font-size: 2vw;
+    color: #fff;
+    background: #e94560;
+    padding: 8px 30px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-top: 15px;
+}
+
+/* Histórico */
+.moderno-escuro #historico {
+    padding: 15px 20px;
+    background: #0f1923;
+    border-top: 1px solid #2a3a4e;
+}
+
+.moderno-escuro #historico .titulo-historico {
+    font-size: 0.9vw;
+    color: #8899aa;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.moderno-escuro #historico .senha-chamada {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    background: #1a2635;
+}
+
+.moderno-escuro #historico .senha-texto {
+    font-size: 1.5vw;
+    font-weight: bold;
+    color: #ccc;
+}
+
+.moderno-escuro #historico .senha-local {
+    font-size: 1vw;
+    color: #8899aa;
+    align-self: center;
+}
+
+.moderno-escuro #historico .prioridade .senha-texto {
+    color: #e94560;
+}
+
+/* Layout normal/prioridade */
+#layout.normal .moderno-escuro #senha-atual .senha span { color: #e94560; }
+#layout.prioridade .moderno-escuro #senha-atual .senha span { color: #ff6b6b; }
+#layout.prioridade .moderno-escuro #senha-atual .local span { background: #ff6b6b; }
