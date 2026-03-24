@@ -1,63 +1,61 @@
-# Novo SGA
-
-[![Packagist](http://img.shields.io/packagist/v/novosga/novosga.svg)](https://packagist.org/packages/novosga/novosga)
-[![Packagist](http://img.shields.io/packagist/dt/novosga/novosga.svg)](https://packagist.org/packages/novosga/novosga)
-[![Packagist](http://img.shields.io/packagist/dm/novosga/novosga.svg)](https://packagist.org/packages/novosga/novosga)
-[![Packagist](http://img.shields.io/packagist/dd/novosga/novosga.svg)](https://packagist.org/packages/novosga/novosga)
+# Novo SGA v1.5.2 (Fork com melhorias)
 
 Sistema de Gerenciamento de Atendimento adaptável para grandes e pequenas organizações.
 
-Visite o site para maiores informações: http://novosga.org
+**Projeto original**: [NovoSGA](https://github.com/novosga/novosga) por [Rogério Alencar Lino Filho](http://rogeriolino.com/)
 
-## Instalação
+Este fork é baseado na versão [v1.5.2](https://github.com/novosga/novosga/releases/tag/v1.5.2) do NovoSGA, com correções de compatibilidade para PHP 7.1+ / 8.x e melhorias funcionais.
 
-Instalação feita via [Composer](http://getcomposer.org/)
+## Ajustes e melhorias
 
-*Produção*
-
-```sh
-php composer.phar create-project novosga/novosga novosga "1.*"
-```
-
-*Ou a versão de desenvolvimento*
-
-```sh
-git clone https://github.com/novosga/novosga
-cd novosga
-php composer.phar install
-```
-Note: After installation remember to change the owner of the novosga directory: Example su chown apache:apache novosga -R
+- **Compatibilidade PHP 8.x** — patches em Slim 2.6, Twig 2.x e Doctrine para funcionar em PHP 8.4
+- **Geração de senhas anti-duplicata** — transação com `SELECT FOR UPDATE`
+- **Sigla de 3 caracteres** — senhas no formato `AAA0001`
+- **Chamar senha específica** — botão na fila para chamar senha direta
+- **Rechamar senha** — rechamar senhas das últimas 2 horas
+- **Campo nome do cliente** — campo na tela de atendimento
+- **Codificação opcional** — configurável por unidade
+- **Triagem simplificada** — emissão direta de senha preferencial
+- **Cronômetro de atendimento** — timer visual por status (espera, atendimento, codificação)
+- **Login moderno** — layout split-screen responsivo
+- **Exportação PDF com mPDF** — relatórios com cabeçalho e rodapé padrão
+- **Filtro por atendente** — nos relatórios de atendimentos e tempos médios
+- **Relatório: Tempo de espera por Serviço** — identifica gargalos por serviço
+- **Vetor Panel** — gerenciador de mídia para o painel (vídeos, imagens, YouTube, IPTV, RSS)
+- **Totem Digital** — painel TV com temas, vocalização via Web Speech API
+- **Totem de Triagem** — app touch para emissão de senhas
+- **API REST** — endpoints OAuth2 para integração externa
 
 ## Tecnologia
 
-A aplicação web escrita em PHP utilizando as melhores práticas de desenvolvimento.
+- **PHP** >= 7.1 (testado em 8.4)
+- **Framework**: Slim Framework 2.6
+- **ORM**: Doctrine ORM 2.8+ com annotations
+- **Templates**: Twig 2.x
+- **Banco de dados**: PostgreSQL
+- **Autenticação API**: OAuth2 (bshaffer/oauth2-server-php)
+- **Relatórios PDF**: mPDF 8.3
+- **Gráficos**: Highcharts
+- **Frontend**: jQuery, Bootstrap 3
 
-- PHP 5.4
-- HTML5
-- CSS3
-- [Doctrine PHP 2.4](http://www.doctrine-project.org/projects/orm.html)
-- [jQuery 1.9](http://jquery.com/)
-- [Twitter Bootstrap 3](http://getbootstrap.com/)
-- [Highcharts](http://www.highcharts.com/)
+## Instalação
 
-Testado no seguintes bancos:
-- [PostgreSQL](http://www.postgresql.org/)
-- [MySQL](http://www.mysql.org)
+```bash
+git clone git@github.com:mendesalexandre/novosgaphp-74.git novosga
+cd novosga
+composer install --no-scripts
+php bin/install.php
+php -S 0.0.0.0:8888 -t public
+```
 
+Acesso: http://localhost:8888 — Login: `admin` / `123456`
 
-## Demo
+Documentação completa em [CLAUDE.md](CLAUDE.md).
 
-Versão de desenvolvimento disponível online através do link: http://novosga.org/demo
+## Créditos
 
-- **Usuário**: admin
-- **Senha**: 123456
+**Autor original**: [Rogério Alencar Lino Filho](http://rogeriolino.com/) — https://github.com/novosga/novosga
 
-## Contribuições
+**Colaboradores originais**: https://github.com/novosga/novosga/contributors
 
-Gostou dessa nova versão? Necessita de alguma funcionalidade ou quer apenas contribuir para manter o projeto a todo vapor?
-
-Entre em contato via [fórum](http://novosga.org/forum/), [blog](http://novosga.org/blog/) ou [issues](https://github.com/novosga/novosga/issues/)!
-
-**Autor**: [Rogério Alencar Lino Filho](http://rogeriolino.com/)
-
-**Colaboradores**: https://github.com/novosga/novosga/contributors
+**Ajustes e melhorias**: Alexandre Mendes
