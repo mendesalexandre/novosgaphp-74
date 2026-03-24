@@ -1,45 +1,49 @@
 {% extends "main.html.twig" %}
 {% block content %}
 <div id="home">
-    <div class="welcome">
-        <h1>{% trans %}Bem-vindo, {{ usuario }}{% endtrans %}</h1>
-        <p>{% trans %}Novo SGA, Sistema de Gerenciamento de Atendimento baseado em web, de código aberto e gratuito.{% endtrans %}</p>
-    </div>
-    <div id="modules">
-        <div id="modules-search">
-            <input id="search-input" type="text" placeholder="{% trans %}buscar{% endtrans %}" onkeyup="SGA.Home.filter()" class="form-control" />
-            <script type="text/javascript"> document.getElementById('search-input').focus() </script>
+    <div class="home-header">
+        <div class="welcome">
+            <h1>{% trans %}Bem-vindo, {{ usuario }}{% endtrans %}</h1>
+            <p>{% trans %}Sistema de Gerenciamento de Atendimento{% endtrans %}</p>
         </div>
+        <div id="modules-search">
+            <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-search"></span></span>
+                <input id="search-input" type="text" placeholder="{% trans %}Buscar módulo...{% endtrans %}" onkeyup="SGA.Home.filter()" class="form-control" />
+            </div>
+        </div>
+    </div>
+
+    <div id="modules">
         {% if unidade and modulosUnidade %}
         <div class="list unidade">
-            <h2>{% trans  %}Unidade{% endtrans %}</h2>
-            <p>{% trans %} Visualize abaixo os módulos disponíveis para a sua unidade{% endtrans %}</p>
-            <ul>
+            <h2><span class="glyphicon glyphicon-home section-icon"></span> {% trans %}Unidade{% endtrans %}</h2>
+            <div class="modules-grid">
                 {% for modulo in modulosUnidade %}
-                <li>
-                    <a href="{{ baseUrl() }}/modules/{{ modulo.chave }}">
-                        <img src="{{ resources('images/icon.png', modulo.chave) }}" />
-                        <span class="name">{{ modulo.nome }}</span>
-                    </a>
-                </li>
+                <a href="{{ baseUrl() }}/modules/{{ modulo.chave }}" class="module-card">
+                    <div class="module-icon">
+                        <img src="{{ resources('images/icon.png', modulo.chave) }}" alt="{{ modulo.nome }}" />
+                    </div>
+                    <span class="module-name">{{ modulo.nome }}</span>
+                </a>
                 {% endfor %}
-            </ul>
+            </div>
         </div>
         {% endif %}
+
         {% if modulosGlobal %}
         <div class="list global">
-            <h2>{% trans %} Global {% endtrans %}</h2>
-            <p>{% trans %}Visualize abaixo os módulos globais disponíveis que você possui acesso{% endtrans %}</p>
-            <ul>
+            <h2><span class="glyphicon glyphicon-cog section-icon"></span> {% trans %}Global{% endtrans %}</h2>
+            <div class="modules-grid">
                 {% for modulo in modulosGlobal %}
-                <li>
-                    <a href="{{ baseUrl() }}/modules/{{ modulo.chave }}">
-                        <img src="{{ resources('images/icon.png', modulo.chave) }}" />
-                        <span class="name">{{ modulo.nome }}</span>
-                    </a>
-                </li>
+                <a href="{{ baseUrl() }}/modules/{{ modulo.chave }}" class="module-card">
+                    <div class="module-icon">
+                        <img src="{{ resources('images/icon.png', modulo.chave) }}" alt="{{ modulo.nome }}" />
+                    </div>
+                    <span class="module-name">{{ modulo.nome }}</span>
+                </a>
                 {% endfor %}
-            </ul>
+            </div>
         </div>
         {% endif %}
     </div>
