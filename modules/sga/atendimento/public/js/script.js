@@ -120,7 +120,6 @@ SGA.Atendimento = {
                     list.html('');
                     }
                     if (mudou && atendimentos.length > 0) {
-                        document.body.focus();
                         for (var i = 0; i < atendimentos.length; i++) {
                             var atendimento = atendimentos[i];
                             var cssClass = atendimento.prioridade ? 'fila-card prioridade' : 'fila-card';
