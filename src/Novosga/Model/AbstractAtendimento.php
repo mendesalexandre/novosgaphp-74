@@ -463,6 +463,7 @@ abstract class AbstractAtendimento extends SequencialModel
             }
             if ($this->getDataInicio()) {
                 $arr['inicio'] = $this->getDataInicio()->format('Y-m-d H:i:s');
+                $arr['tempoAtendimento'] = (new \DateTime())->getTimestamp() - $this->getDataInicio()->getTimestamp();
             }
             if ($this->getDataFim()) {
                 $arr['fim'] = $this->getDataFim()->format('Y-m-d H:i:s');
