@@ -39,6 +39,10 @@
             "modules\\": "./"
         }
     },
+    "scripts": {
+        "post-install-cmd": "php bin/vendor-patches.php",
+        "post-update-cmd": "php bin/vendor-patches.php"
+    },
     "config": {
         "bin-dir": "bin",
         "audit": {
