@@ -4,11 +4,14 @@
 
 Sistema de gerenciamento de fila de atendimento (senhas) open source, baseado no [NovoSGA v1.5.2](https://github.com/novosga/novosga/releases/tag/v1.5.2), com correções de compatibilidade e melhorias funcionais.
 
+**Autor original**: [Rogério Alencar Lino Filho](http://rogeriolino.com/) — https://github.com/novosga/novosga
+
 - **Framework**: Slim Framework 2.6 (NÃO Symfony)
 - **ORM**: Doctrine ORM 2.8+ com annotations
 - **Template Engine**: Twig 2.x (via slim/views)
 - **Banco de Dados**: PostgreSQL (via Doctrine DBAL com driver `pdo_pgsql`)
 - **Autenticação API**: OAuth2 (bshaffer/oauth2-server-php)
+- **Relatórios PDF**: mPDF 8.3
 - **PHP**: >=7.1 (testado em 8.4)
 - **Servidor**: nginx + PHP-FPM (ou PHP built-in para desenvolvimento)
 
@@ -29,8 +32,10 @@ Sistema de gerenciamento de fila de atendimento (senhas) open source, baseado no
 ```bash
 git clone git@github.com:mendesalexandre/novosgaphp-74.git novosga
 cd novosga
-composer install --no-scripts
+composer install
 ```
+
+> **Importante**: O `composer install` executa automaticamente `bin/vendor-patches.php` que aplica os patches de compatibilidade PHP 8.x nos vendors. Não use `--no-scripts` em produção.
 
 ### Passo 2 — Banco de dados
 
@@ -119,6 +124,7 @@ novosga/
 ├── bin/
 │   ├── install.php            # Instalação automatizada
 │   ├── novosga.php            # CLI do NovoSGA (reset, unidades, módulos)
+│   ├── vendor-patches.php     # Patches automáticos PHP 8.x nos vendors
 │   └── doctrine               # Doctrine CLI
 ├── bootstrap.php              # Constantes e autoloader
 ├── composer.json
@@ -151,7 +157,7 @@ novosga/
 │   │   ├── triagem/           # Emissão de senhas (normal/prioridade)
 │   │   ├── unidade/           # Config da unidade (serviços, impressão, avançado)
 │   │   ├── admin/             # Painel administrativo
-│   │   ├── estatisticas/      # Relatórios e gráficos
+│   │   ├── estatisticas/      # Relatórios, gráficos e exportação PDF
 │   │   └── (cargos, grupos, locais, prioridades, servicos, unidades, usuarios, modulos)
 │   └── vetor/
 │       └── panel/             # Vetor Panel (gerenciador de mídia do painel)
@@ -176,7 +182,7 @@ novosga/
 │   ├── login.html.twig        # Login moderno split-screen
 │   └── (home, module, profile, print, install, error)
 └── var/
-    ├── cache/                 # Cache do Twig (limpar ao alterar templates)
+    ├── cache/                 # Cache do Twig e mPDF (limpar ao alterar templates)
     └── log/                   # Logs
 ```
 
@@ -213,6 +219,15 @@ SENHA_EMITIDA (1)  →  CHAMADO_PELA_MESA (2)  →  ATENDIMENTO_INICIADO (3)
 Outros status: NAO_COMPARECEU (5), SENHA_CANCELADA (6), ERRO_TRIAGEM (7)
 ```
 
+### Controles por Status
+
+| Status | Painel | Botões disponíveis |
+|--------|--------|--------------------|
+| 1 — Nenhum | Chamar | Chamar próximo |
+| 2 — Chamado | Iniciar | Chamar novamente, Iniciar atendimento, Não compareceu |
+| 3 — Iniciado | Encerrar | Encerrar atendimento, Erro de triagem |
+| 4 — Encerrado | Codificar | Selecionar serviços realizados, Codificar |
+
 ---
 
 ## Configurações por Unidade (tabela uni_meta)
@@ -230,8 +245,23 @@ Gerenciadas em **Unidade > aba Avançado**:
 ## Melhorias Implementadas
 
 ### Compatibilidade PHP 8.x
-- Vendor patches: `get_magic_quotes_gpc()`, Twig 2.x namespaces, `DateInterval`
+- Vendor patches automatizados via `bin/vendor-patches.php` (executado no `composer install/update`)
 - Symfony Console travado em ^5.4
+- Security advisories do Twig 2.x ignoradas no composer (não é possível migrar para Twig 3.x)
+
+### Vendor Patches Automáticos (bin/vendor-patches.php)
+
+Script executado automaticamente pelo composer (`post-install-cmd` e `post-update-cmd`). Aplica 3 patches:
+
+| Arquivo | Patch | Motivo |
+|---------|-------|--------|
+| `vendor/slim/slim/Slim/Http/Util.php` | `get_magic_quotes_gpc()` → `false` | Função removida no PHP 8.0 |
+| `vendor/slim/views/Twig.php` | `\Twig_Autoloader`, `\Twig_Loader_Filesystem`, `\Twig_Environment`, `->loadTemplate()` → namespaces Twig 2.x | Classes Twig 1.x não existem no Twig 2.x |
+| `vendor/slim/views/TwigExtension.php` | `\Twig_Extension` → `\Twig\Extension\AbstractExtension`, `\Twig_SimpleFunction` → `\Twig\TwigFunction` | Classes Twig 1.x não existem no Twig 2.x |
+
+O script é **idempotente** — detecta se o patch já foi aplicado e não reaplica.
+
+> **Nota**: O arquivo original do slim/views usa `\Twig_Loader_Filesystem` (com `\` na frente). O script substitui primeiro a versão com `\` e depois sem `\` para evitar gerar `\\Twig\Loader\FilesystemLoader` (barra dupla = erro de sintaxe).
 
 ### Geração de Senhas (anti-duplicata)
 - Transação com `SELECT FOR UPDATE` no contador da unidade
@@ -278,6 +308,11 @@ Gerenciadas em **Unidade > aba Avançado**:
 - Campos com ícones Bootstrap, botão com gradiente
 - Responsivo
 
+### Módulo de Atendimento
+- Removido botão "Chamar novamente" do painel após iniciar atendimento (status 3)
+- Botões "Encerrar" e "Erro de triagem" ocupam 50/50 da largura no status 3
+- Corrigido scroll para o topo causado por `document.body.focus()` no AJAX da fila
+
 ### Exportação de Relatórios em PDF (mPDF)
 - Dependência: `mpdf/mpdf v8.3` (via composer)
 - Endpoint `GET /modules/sga.estatisticas/relatorio_pdf?relatorio=N&unidade=N&inicial=YYYY-MM-DD&final=YYYY-MM-DD`
@@ -287,15 +322,11 @@ Gerenciadas em **Unidade > aba Avançado**:
 - Botão "Exportar PDF" na aba Relatórios e na página do relatório HTML
 - Usa `var/cache` como diretório temporário do mPDF
 
-### Correções no Módulo de Atendimento
-- Removido botão "Chamar novamente" do painel após iniciar atendimento (status 3)
-- Botões "Encerrar" e "Erro de triagem" agora ocupam 50/50 da largura
-- Corrigido scroll para o topo causado por `document.body.focus()` no AJAX da fila
-
 ### Filtro por Atendente nos Relatórios
 - Select de atendente nos relatórios: Atendimentos concluídos, Atendimentos por status, Tempos médios
 - Queries filtram por `usuario` quando atendente selecionado
 - Nome do atendente exibido no cabeçalho do relatório (HTML e PDF)
+- Parâmetro `atendente` incluído na exportação PDF
 
 ### Relatório: Tempo de Espera por Serviço
 - Novo relatório (#9) em `sga.estatisticas`
@@ -307,6 +338,40 @@ Gerenciadas em **Unidade > aba Avançado**:
 - Corrigido formato DateInterval nos atendimentos concluídos (`%I/%S` → `%i/%s`)
 - Tratamento de datas nulas no relatório de atendimentos por status
 - Método `prepararRelatorio()` extraído para reutilização entre HTML e PDF
+
+---
+
+## Módulo de Estatísticas (sga.estatisticas)
+
+### Abas
+
+| Aba | Descrição |
+|-----|-----------|
+| Hoje | Gráficos pizza do dia (atendimentos por status e por serviço) por unidade |
+| Gráficos | Gráficos customizáveis por período (pizza e barra) |
+| Relatórios | Relatórios tabulares com exportação HTML e PDF |
+
+### Relatórios Disponíveis
+
+| # | Relatório | Filtros |
+|---|-----------|---------|
+| 1 | Serviços Disponíveis - Global | — |
+| 2 | Serviços Disponíveis - Unidade | Unidade |
+| 3 | Serviços codificados | Unidade, Período |
+| 4 | Atendimentos concluídos | Unidade, Período, Atendente |
+| 5 | Atendimentos em todos os status | Unidade, Período, Atendente |
+| 6 | Tempos médios por Atendente | Período, Atendente |
+| 7 | Lotações | Unidade |
+| 8 | Cargos | — |
+| 9 | Tempo de espera por Serviço | Unidade, Período |
+
+### Gráficos Disponíveis
+
+| # | Gráfico | Tipo | Filtros |
+|---|---------|------|---------|
+| 1 | Atendimentos por status | Pizza | Unidade, Período |
+| 2 | Atendimentos por serviço | Pizza | Unidade, Período |
+| 3 | Tempo médio do atendimento | Barra | Unidade, Período |
 
 ---
 
@@ -452,26 +517,52 @@ curl -X POST http://novosga.local/api/token \
 
 ---
 
-## Correções de Compatibilidade (PHP 8.x)
+## Deploy em Produção
 
-### Vendor patches (reaplicar após `composer install`)
+### Primeiro deploy
 
-**`vendor/slim/slim/Slim/Http/Util.php` linha 60:**
-```php
-$strip = is_null($overrideStripSlashes) ? false : $overrideStripSlashes;
+```bash
+cd /var/www/html
+git clone git@github.com:mendesalexandre/novosgaphp-74.git novosga
+cd novosga
+composer install
+php bin/install.php
+chmod 777 var/cache config
+mkdir -p modules/vetor/panel/public/uploads && chmod 777 modules/vetor/panel/public/uploads
 ```
 
-**`vendor/slim/views/Twig.php`:** remover Twig_Autoloader, usar `\Twig\Loader\FilesystemLoader`, `\Twig\Environment`, `$env->load()`
+### Atualização
 
-**`vendor/slim/views/TwigExtension.php`:** trocar `\Twig_Extension` → `\Twig\Extension\AbstractExtension`, `\Twig_SimpleFunction` → `\Twig\TwigFunction`
+```bash
+cd /var/www/html/novosga
+git pull
+rm -rf vendor
+composer install
+sudo rm -rf var/cache/*
+sudo systemctl restart php8.4-fpm
+```
+
+> **Por que `rm -rf vendor`?** O `composer install` não reescreve arquivos de vendor que já existem. Se os patches estavam corrompidos de uma versão anterior, é necessário deletar o vendor e reinstalar para que o script aplique os patches corretamente nos arquivos originais.
+
+### Troubleshooting
+
+| Erro | Causa | Solução |
+|------|-------|---------|
+| `syntax error in Twig.php` | Vendor patches não aplicados | `rm -rf vendor && composer install` |
+| `get_magic_quotes_gpc` | Vendor patches não aplicados | `rm -rf vendor && composer install` |
+| `Twig_Extension not found` | Vendor patches não aplicados | `rm -rf vendor && composer install` |
+| Templates não atualizam | Cache do Twig | `sudo rm -rf var/cache/*` |
+| Erro 502 Bad Gateway | PHP-FPM parado | `sudo systemctl restart php8.4-fpm` |
+| Upload falha (413) | Limite nginx/PHP | Ajustar `client_max_body_size` no nginx e `upload_max_filesize`/`post_max_size` no PHP |
 
 ---
 
 ## Observações Importantes
 
 - **Limpar cache Twig**: `sudo rm -rf var/cache/*` (ou com permissão do PHP-FPM)
-- **Vendor patches**: reaplicar após `composer install`
+- **Vendor patches**: aplicados automaticamente pelo composer (NÃO usar `--no-scripts` em produção)
 - **Senha admin**: MD5 de `123456` = `e10adc3949ba59abbe56e057f20f883e`
 - **Schema do banco**: usar `bin/install.php` ou o script SQL nativo (`src/Novosga/Install/sql/create/pgsql.sql`)
 - **SweetAlert2**: incluído localmente em `public/js/sweetalert2.min.js` (funciona offline)
 - **Permissões**: `var/cache/` e `config/` precisam de escrita pelo PHP-FPM, `modules/vetor/panel/public/uploads/` para uploads
+- **Security advisories Twig**: ignoradas no `composer.json` (`config.audit.ignore`) — Twig 2.x tem vulnerabilidades conhecidas mas a migração para 3.x exigiria reescrita significativa
