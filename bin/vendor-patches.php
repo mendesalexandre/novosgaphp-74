@@ -46,13 +46,23 @@ if (file_exists($file)) {
         $changed = true;
     }
 
-    // Twig_Loader_Filesystem -> \Twig\Loader\FilesystemLoader
+    // \Twig_Loader_Filesystem -> \Twig\Loader\FilesystemLoader (com barra na frente)
+    if (strpos($content, '\Twig_Loader_Filesystem') !== false) {
+        $content = str_replace('\Twig_Loader_Filesystem', '\Twig\Loader\FilesystemLoader', $content);
+        $changed = true;
+    }
+    // Twig_Loader_Filesystem -> \Twig\Loader\FilesystemLoader (sem barra na frente)
     if (strpos($content, 'Twig_Loader_Filesystem') !== false) {
         $content = str_replace('Twig_Loader_Filesystem', '\Twig\Loader\FilesystemLoader', $content);
         $changed = true;
     }
 
-    // Twig_Environment -> \Twig\Environment
+    // \Twig_Environment -> \Twig\Environment (com barra na frente)
+    if (strpos($content, '\Twig_Environment') !== false) {
+        $content = str_replace('\Twig_Environment', '\Twig\Environment', $content);
+        $changed = true;
+    }
+    // Twig_Environment -> \Twig\Environment (sem barra na frente)
     if (strpos($content, 'Twig_Environment') !== false) {
         $content = str_replace('Twig_Environment', '\Twig\Environment', $content);
         $changed = true;
@@ -82,14 +92,23 @@ if (file_exists($file)) {
     $content = file_get_contents($file);
     $changed = false;
 
-    // Twig_Extension -> \Twig\Extension\AbstractExtension
-    if (strpos($content, 'Twig_Extension') !== false) {
+    // \Twig_Extension -> \Twig\Extension\AbstractExtension (com barra)
+    if (strpos($content, '\Twig_Extension') !== false) {
         $content = str_replace('\Twig_Extension', '\Twig\Extension\AbstractExtension', $content);
+        $changed = true;
+    }
+    // Twig_Extension -> \Twig\Extension\AbstractExtension (sem barra)
+    if (strpos($content, 'Twig_Extension') !== false) {
         $content = str_replace('Twig_Extension', '\Twig\Extension\AbstractExtension', $content);
         $changed = true;
     }
 
-    // Twig_SimpleFunction -> \Twig\TwigFunction
+    // \Twig_SimpleFunction -> \Twig\TwigFunction (com barra)
+    if (strpos($content, '\Twig_SimpleFunction') !== false) {
+        $content = str_replace('\Twig_SimpleFunction', '\Twig\TwigFunction', $content);
+        $changed = true;
+    }
+    // Twig_SimpleFunction -> \Twig\TwigFunction (sem barra)
     if (strpos($content, 'Twig_SimpleFunction') !== false) {
         $content = str_replace('Twig_SimpleFunction', '\Twig\TwigFunction', $content);
         $changed = true;
