@@ -256,12 +256,12 @@ Script executado automaticamente pelo composer (`post-install-cmd` e `post-updat
 | Arquivo | Patch | Motivo |
 |---------|-------|--------|
 | `vendor/slim/slim/Slim/Http/Util.php` | `get_magic_quotes_gpc()` → `false` | Função removida no PHP 8.0 |
-| `vendor/slim/views/Twig.php` | `\Twig_Autoloader`, `\Twig_Loader_Filesystem`, `\Twig_Environment`, `->loadTemplate()` → namespaces Twig 2.x | Classes Twig 1.x não existem no Twig 2.x |
+| `vendor/slim/views/Twig.php` | Remove bloco inteiro `Twig_Autoloader` (if+require+register), `\Twig_Loader_Filesystem` → `\Twig\Loader\FilesystemLoader`, `\Twig_Environment` → `\Twig\Environment`, `->loadTemplate()` → `->load()` | Classes Twig 1.x não existem no Twig 2.x |
 | `vendor/slim/views/TwigExtension.php` | `\Twig_Extension` → `\Twig\Extension\AbstractExtension`, `\Twig_SimpleFunction` → `\Twig\TwigFunction` | Classes Twig 1.x não existem no Twig 2.x |
 
 O script é **idempotente** — detecta se o patch já foi aplicado e não reaplica.
 
-> **Nota**: O arquivo original do slim/views usa `\Twig_Loader_Filesystem` (com `\` na frente). O script substitui primeiro a versão com `\` e depois sem `\` para evitar gerar `\\Twig\Loader\FilesystemLoader` (barra dupla = erro de sintaxe).
+> **Nota**: O patch do `Twig.php` remove o bloco inteiro do `Twig_Autoloader` (comentário + if + require_once + register) via regex multiline. Versões anteriores do script removiam apenas as linhas contendo `Twig_Autoloader`, deixando o `require_once` e `}` órfãos que causavam syntax error no PHP 8.4. O script também substitui primeiro a versão com `\` e depois sem `\` para evitar gerar `\\Twig\Loader\FilesystemLoader` (barra dupla = erro de sintaxe).
 
 ### Geração de Senhas (anti-duplicata)
 - Transação com `SELECT FOR UPDATE` no contador da unidade
@@ -307,6 +307,13 @@ O script é **idempotente** — detecta se o patch já foi aplicado e não reapl
 - Layout split-screen: branding à esquerda, formulário à direita
 - Campos com ícones Bootstrap, botão com gradiente
 - Responsivo
+
+### Painel Web — Correção Infinite Digest (AngularJS)
+- **Problema**: Ao abrir `painel-web/` sem configuração prévia (localStorage vazio ou corrompido), `config.theme` ficava `undefined`, gerando `themes/undefined/style.css` e `themes/undefined/index.html` que causavam `$rootScope:infdig` (infinite digest loop no AngularJS 1.2)
+- **Correções**:
+  - `config.json` preenchido com defaults válidos (theme: "default", lang: "pt", etc.) — arquivo é `.gitignore`'d, mas `config.json.example` é versionado
+  - `Config.load()` rejeita theme `"undefined"`, protege `JSON.parse` com try/catch, fallback para valores padrão em cada campo
+  - `init()` valida resposta do `config.json` com `angular.extend` e garante `theme || "default"`
 
 ### Módulo de Atendimento
 - Removido botão "Chamar novamente" do painel após iniciar atendimento (status 3)
@@ -519,6 +526,28 @@ curl -X POST http://novosga.local/api/token \
 
 ## Deploy em Produção
 
+### Pré-requisitos do servidor
+
+Testado em **Debian 13 (trixie)** com PHP 8.4:
+
+```bash
+# Pacotes necessários (como root)
+apt-get update && apt-get install -y \
+  php php-cli php-fpm php-pgsql php-json php-mbstring php-xml php-zip php-curl php-gd php-intl \
+  postgresql postgresql-client \
+  nginx git unzip curl rsync
+
+# Instalar Composer
+curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Iniciar serviços
+systemctl enable --now postgresql php8.4-fpm nginx
+
+# Criar banco de dados
+su - postgres -c "psql -c \"CREATE USER novosga WITH PASSWORD 'novosga';\""
+su - postgres -c "psql -c \"CREATE DATABASE novosga OWNER novosga ENCODING 'UTF8';\""
+```
+
 ### Primeiro deploy
 
 ```bash
@@ -529,6 +558,16 @@ composer install
 php bin/install.php
 chmod 777 var/cache config
 mkdir -p modules/vetor/panel/public/uploads && chmod 777 modules/vetor/panel/public/uploads
+chown -R www-data:www-data var/ config/
+
+# Copiar config do painel-web
+cp painel-web/config.json.example painel-web/config.json
+
+# Configurar nginx
+cp nginx.conf.example /etc/nginx/sites-enabled/novosga.conf
+sed -i "s|/var/www/html/novosga|$(pwd)|g" /etc/nginx/sites-enabled/novosga.conf
+rm -f /etc/nginx/sites-enabled/default
+nginx -t && systemctl reload nginx
 ```
 
 ### Atualização
@@ -538,11 +577,22 @@ cd /var/www/html/novosga
 git pull
 rm -rf vendor
 composer install
-sudo rm -rf var/cache/*
-sudo systemctl restart php8.4-fpm
+rm -rf var/cache/*
+systemctl restart php8.4-fpm
 ```
 
 > **Por que `rm -rf vendor`?** O `composer install` não reescreve arquivos de vendor que já existem. Se os patches estavam corrompidos de uma versão anterior, é necessário deletar o vendor e reinstalar para que o script aplique os patches corretamente nos arquivos originais.
+
+### Deploy via rsync (de máquina local para servidor)
+
+```bash
+# Enviar código (exclui .git, vendor e cache)
+rsync -avz --exclude='.git' --exclude='vendor' --exclude='var/cache/*' --exclude='var/log/*' \
+  /caminho/local/novosga/ usuario@servidor:/var/www/html/novosga/
+
+# No servidor: instalar dependências e aplicar patches
+ssh usuario@servidor "cd /var/www/html/novosga && composer install && php bin/install.php"
+```
 
 ### Troubleshooting
 
@@ -551,8 +601,9 @@ sudo systemctl restart php8.4-fpm
 | `syntax error in Twig.php` | Vendor patches não aplicados | `rm -rf vendor && composer install` |
 | `get_magic_quotes_gpc` | Vendor patches não aplicados | `rm -rf vendor && composer install` |
 | `Twig_Extension not found` | Vendor patches não aplicados | `rm -rf vendor && composer install` |
-| Templates não atualizam | Cache do Twig | `sudo rm -rf var/cache/*` |
-| Erro 502 Bad Gateway | PHP-FPM parado | `sudo systemctl restart php8.4-fpm` |
+| `$rootScope:infdig` no painel-web | `config.theme` undefined (localStorage corrompido) | Limpar localStorage do navegador ou copiar `config.json.example` → `config.json` |
+| Templates não atualizam | Cache do Twig | `rm -rf var/cache/*` |
+| Erro 502 Bad Gateway | PHP-FPM parado | `systemctl restart php8.4-fpm` |
 | Upload falha (413) | Limite nginx/PHP | Ajustar `client_max_body_size` no nginx e `upload_max_filesize`/`post_max_size` no PHP |
 
 ---

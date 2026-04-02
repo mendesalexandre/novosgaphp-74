@@ -1,0 +1,13 @@
+{
+    "url": "",
+    "theme": "default",
+    "alert": "ekiga-vm.wav",
+    "vocalizar": false,
+    "vocalizarZero": false,
+    "vocalizarLocal": false,
+    "usarVozNavegador": true,
+    "modoVoz": "extenso",
+    "lang": "pt",
+    "unidade": {},
+    "servicos": []
+}

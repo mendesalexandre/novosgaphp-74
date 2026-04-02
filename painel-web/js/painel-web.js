@@ -146,10 +146,15 @@ angular
           .get("config.json")
           // tente o arquivo config.json
           .success(function (config) {
-            if (config.unidade && typeof config.unidade !== "object") {
-              config.unidade = { id: parseInt(config.unidade) };
+            if (config && typeof config === "object") {
+              if (config.unidade && typeof config.unidade !== "object") {
+                config.unidade = { id: parseInt(config.unidade) };
+              }
+              config.theme = config.theme || "default";
+              config.unidade = config.unidade || {};
+              config.servicos = config.servicos || [];
+              $scope.config = angular.extend($scope.config, config);
             }
-            $scope.config = config;
             PainelWeb.Config.save($scope);
           })
           // caso contrario (arquivo nao existe) abra a modal
@@ -488,13 +493,22 @@ var PainelWeb = {
 
   Config: {
     load: function ($scope) {
-      if (PainelWeb.Storage.get("theme")) {
-        $scope.config.theme = PainelWeb.Storage.get("theme");
-        $scope.config.url = PainelWeb.Storage.get("url");
-        $scope.config.unidade = JSON.parse(PainelWeb.Storage.get("unidade"));
-        $scope.config.servicos = JSON.parse(PainelWeb.Storage.get("servicos")) || [];
-        $scope.config.lang = PainelWeb.Storage.get("lang");
-        $scope.config.alert = PainelWeb.Storage.get("alert");
+      var theme = PainelWeb.Storage.get("theme");
+      if (theme && theme !== "undefined") {
+        $scope.config.theme = theme;
+        $scope.config.url = PainelWeb.Storage.get("url") || "";
+        try {
+          $scope.config.unidade = JSON.parse(PainelWeb.Storage.get("unidade")) || {};
+        } catch (e) {
+          $scope.config.unidade = {};
+        }
+        try {
+          $scope.config.servicos = JSON.parse(PainelWeb.Storage.get("servicos")) || [];
+        } catch (e) {
+          $scope.config.servicos = [];
+        }
+        $scope.config.lang = PainelWeb.Storage.get("lang") || "pt";
+        $scope.config.alert = PainelWeb.Storage.get("alert") || "ekiga-vm.wav";
         $scope.config.vocalizar = PainelWeb.Storage.get("vocalizar") === "1";
         $scope.config.vocalizarZero =
           PainelWeb.Storage.get("vocalizarZero") === "1";
