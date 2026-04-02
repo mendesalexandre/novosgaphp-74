@@ -40,8 +40,19 @@ if (file_exists($file)) {
     $content = file_get_contents($file);
     $changed = false;
 
-    // Remover Twig_Autoloader::register() se existir
+    // Remover bloco inteiro do Twig_Autoloader (if + require + register)
     if (strpos($content, 'Twig_Autoloader') !== false) {
+        // Remove o bloco: if (!class_exists(...)) { require_once ...; } \Twig_Autoloader::register();
+        $content = preg_replace(
+            '/\s*\/\*\*\s*\n\s*\*\s*Check if Twig_Autoloader.*?\*\/\s*\n' .
+            '\s*if\s*\(\!class_exists.*?Twig_Autoloader.*?\)\s*\{\s*\n' .
+            '\s*require_once.*?Autoloader\.php.*?\n' .
+            '\s*\}\s*\n' .
+            '\s*\\\\?Twig_Autoloader::register\(\);\s*\n/s',
+            "\n",
+            $content
+        );
+        // Fallback: remove any remaining Twig_Autoloader lines
         $content = preg_replace('/.*Twig_Autoloader.*\n/', '', $content);
         $changed = true;
     }
